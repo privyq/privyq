@@ -1,34 +1,22 @@
 """
-Example 1 — Healthcare: Secure Patient Records
-==============================================
+Example 1 — Healthcare: Protecting a Real Patient Chart (a file)
+================================================================
 
 THE PROBLEM
 -----------
-A hospital stores a patient's chart. Regulations (HIPAA, GDPR-health) require
-that only the *right* people read it — the treating cardiologist, yes; a nurse
-from an unrelated ward, no — and that the hospital can *prove*, later and
-irrefutably, exactly who accessed the record and whether that access was allowed.
-
-Ordinary encryption can keep the chart confidential, but it can't answer "who may
-open this, and under what circumstances?" nor "prove that the rules were honored."
-
-HOW PrivyQ SOLVES IT
---------------------
-We `protect()` the chart with a policy embedded *inside* the ciphertext:
-
-    role = doctor  AND  department in {cardiology}  AND  purpose = treatment
-    AND  the grant has not expired
-
-Decryption (`access()`) is refused unless the requester satisfies that policy —
-and every attempt, allowed or denied, produces a signed, hash-chained receipt we
-can `verify()`.
+A hospital's EHR exports a patient's cardiology chart as a file. That file must
+be readable only by the right clinician, for the right reason, and every access
+must be provable after the fact (HIPAA / GDPR-health).
 
 WHAT THIS EXAMPLE DEMONSTRATES
 ------------------------------
-  * Embedding a role/department/purpose/expiry policy in encrypted data
-  * An authorized read (the cardiologist) succeeding
-  * Two unauthorized reads (wrong role, wrong purpose) being denied — yet audited
-  * Verifying a receipt and the whole tamper-evident evidence chain
+  * Protecting an actual file on disk: read `data/patient_chart.txt`, seal it to
+    an opaque `patient_chart.txt.privyq`, and confirm the ciphertext contains
+    none of the plaintext.
+  * A role/department/purpose/expiry policy embedded in the sealed file.
+  * An authorized clinician decrypting the file back to disk, byte-for-byte;
+    unauthorized attempts denied but audited.
+  * Verifying the tamper-evident receipt chain.
 
 Run me:  python examples/01_healthcare_records.py
 (Start the core first — see examples/README.md.)
@@ -37,106 +25,91 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
+from pathlib import Path
 
 import privyq
 from privyq import CoreUnreachableError, PolicyViolationError
 
-# ── tiny console helpers (kept inline so this file is copy-paste standalone) ──
-def banner(title: str) -> None:
-    print(f"\n\033[1m{title}\033[0m\n" + "─" * len(title))
+HERE = Path(__file__).resolve().parent
+CHART = HERE / "data" / "patient_chart.txt"
+
+
+def banner(t: str) -> None:
+    print(f"\n\033[1m{t}\033[0m\n" + "─" * len(t))
 
 
 def show(label: str, value: str) -> None:
-    print(f"  {label:<22} {value}")
+    print(f"  {label:<24} {value}")
 
 
 def main() -> None:
-    # 1) Point the SDK at the core. Reads PRIVYQ_CORE_ADDRESS or defaults to
-    #    localhost:50051. Everything below is plain, synchronous function calls.
     privyq.configure(core_address=os.getenv("PRIVYQ_CORE_ADDRESS", "localhost:50051"))
+    vault = Path(tempfile.mkdtemp(prefix="privyq_healthcare_"))
 
-    banner("① PROTECT — the cardiologist locks a patient's chart")
-    chart = (
-        "Patient: John Doe (58). Dx: mild LV hypertrophy. BP 132/84. "
-        "Plan: continue beta-blocker, echo in 3 months."
-    )
+    banner("① READ — the plaintext chart exported from the EHR")
+    plaintext = CHART.read_bytes()
+    preview = plaintext.decode().splitlines()
+    show("source file", str(CHART))
+    show("size", f"{len(plaintext)} bytes")
+    print("  preview:")
+    for line in preview[:6]:
+        print(f"      {line}")
+    print("      …")
 
-    # The policy is expressed as a plain dict. A list value (department) means
-    # "must be one of"; "expiry" accepts a human duration and is expanded to an
-    # absolute deadline. These rules now travel *inside* the ciphertext.
+    banner("② PROTECT — seal the file with an access policy")
     protected = privyq.protect(
-        chart,
+        plaintext,
         policy={
             "role": "doctor",
             "department": ["cardiology"],
             "purpose": "treatment",
             "expiry": "24h",
         },
-        resource_id="patient_john_doe",
+        resource_id="chart_SGH-0042118",
         actor={"user_id": "dr_amara", "role": "doctor", "department": "cardiology"},
     )
-    show("encrypted under key", protected.key_id)
-    show("policy fingerprint", protected.policy_hash[:16] + "…")
-    show("bytes on the wire", f"{len(protected.raw)} bytes of ciphertext + embedded policy")
+    sealed_path = vault / "patient_chart.txt.privyq"
+    sealed_path.write_bytes(protected.raw)          # <-- the encrypted file at rest
+    show("sealed file", str(sealed_path))
+    show("sealed size", f"{sealed_path.stat().st_size} bytes (ciphertext + embedded policy)")
+    # Prove the sealed file leaks nothing: the patient's name is not in it.
+    leaked = b"John A. Doe" in sealed_path.read_bytes()
+    show("plaintext leaked?", "NO ✓ — ciphertext is opaque" if not leaked else "YES ✗")
 
-    banner("② ACCESS (authorized) — Dr. Amara, cardiology, for treatment")
+    banner("③ ACCESS (authorized) — Dr. Amara decrypts the file back to disk")
+    sealed = sealed_path.read_bytes()               # load the .privyq from disk
     result = privyq.access(
-        protected,
-        identity={
-            "user_id": "dr_amara",
-            "role": "doctor",
-            "department": "cardiology",
-            "purpose": "treatment",
-        },
+        sealed,
+        identity={"user_id": "dr_amara", "role": "doctor", "department": "cardiology", "purpose": "treatment"},
     )
+    recovered_path = vault / "patient_chart.recovered.txt"
+    recovered_path.write_bytes(result.data)
     show("decision", "GRANTED ✓")
-    show("decrypted chart", result.text)
+    show("recovered file", str(recovered_path))
+    show("byte-identical?", "YES ✓" if result.data == plaintext else "NO ✗")
     show("signed receipt", result.receipt.id)
 
-    banner("③ ACCESS (denied) — a nurse from the general ward")
-    try:
-        privyq.access(
-            protected,
-            identity={"user_id": "nurse_bello", "role": "nurse", "department": "general"},
-        )
-    except PolicyViolationError as why:
-        # No plaintext is returned. The attempt is NOT silently dropped — it is
-        # recorded as a signed "denied" receipt (we'll see it in the log below).
-        show("decision", "DENIED ✕")
-        show("reason", str(why))
+    banner("④ ACCESS (denied) — wrong people, wrong reasons")
+    for who, identity in [
+        ("nurse, general ward", {"user_id": "nurse_bello", "role": "nurse", "department": "general"}),
+        ("doctor, but for research", {"user_id": "dr_chen", "role": "doctor",
+                                      "department": "cardiology", "purpose": "research"}),
+    ]:
+        try:
+            privyq.access(sealed, identity=identity)
+            show(who, "GRANTED ✗ (unexpected)")
+        except PolicyViolationError as why:
+            show(who, f"DENIED ✕  ({why})")
 
-    banner("④ ACCESS (denied) — a doctor, but for the wrong purpose (research)")
-    try:
-        privyq.access(
-            protected,
-            identity={
-                "user_id": "dr_chen",
-                "role": "doctor",
-                "department": "cardiology",
-                "purpose": "research",  # policy requires purpose == treatment
-            },
-        )
-    except PolicyViolationError as why:
-        show("decision", "DENIED ✕")
-        show("reason", str(why))
-
-    banner("⑤ VERIFY — the audit trail is complete and tamper-evident")
-    # Pull every receipt for this record. Note it contains BOTH the granted read
-    # and the two denied attempts — you can prove misuse, not just usage.
-    receipts = privyq.evidence.log(resource_id="patient_john_doe")
-    print(f"  {len(receipts)} receipt(s) recorded for this patient:")
+    banner("⑤ VERIFY — every access to this chart, provable")
+    receipts = privyq.evidence.log(resource_id="chart_SGH-0042118")
     for r in receipts:
         mark = "✓" if r.result == "granted" else "✕"
-        check = privyq.verify(r)  # signature + hash-chain verification, in the core
-        print(
-            f"    {mark} {r.result:<8} by {r.actor:<12} "
-            f"(op={r.operation}, verified={check.ok}, chain_ok={check.chain_valid})"
-        )
-    print(
-        "\n  Every entry is Dilithium-signed and linked to the previous one by a\n"
-        "  SHA-256 hash. Editing, deleting, or reordering any entry breaks the\n"
-        "  chain — so this log is admissible evidence of compliance."
-    )
+        check = privyq.verify(r)
+        print(f"    {mark} {r.result:<8} {r.actor:<12} op={r.operation:<8} verified={check.ok} chain_ok={check.chain_valid}")
+
+    print(f"\n  Sealed + recovered files are in:  {vault}")
 
 
 if __name__ == "__main__":
@@ -146,5 +119,4 @@ if __name__ == "__main__":
         sys.exit(
             "\n✗ Could not reach the PrivyQ core.\n"
             "  Start it first:  cd core-go && KEY_STORAGE=memory go run ./cmd/privyqd\n"
-            "  (see examples/README.md)"
         )
