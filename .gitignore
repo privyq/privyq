@@ -1,0 +1,38 @@
+# Go
+core-go/privyqd
+core-go/bin/
+*.test
+*.out
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.local
+*.pem
+*.key
+data/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Local design prototype (kept locally, not part of the repo)
+privyq-site/

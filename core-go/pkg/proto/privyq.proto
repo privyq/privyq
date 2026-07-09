@@ -1,0 +1,233 @@
+// PrivyQ core gRPC contract.
+//
+// This is the single, frozen interface between the Python SDK (and any future
+// language SDK) and the Go cryptographic core. It is derived from
+// docs/SYSTEM_ARCHITECTURE.md §7.3 & §8.1 and docs/blueprint.md Appendix A/B.
+//
+// Regenerate stubs with `make proto` (see repo root Makefile).
+syntax = "proto3";
+
+package privyq.v1;
+
+option go_package = "github.com/privyq/privyq/core-go/pkg/pb;pb";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Policy types (docs/blueprint.md Appendix D)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// A single policy condition, e.g. {type:"role", operator:"equals", value:"doctor"}.
+message Condition {
+  string type = 1;              // role, department, purpose, classification, expiry, ...
+  string operator = 2;          // equals, not_equals, in, not_in, before, after, between, ...
+  repeated string values = 3;   // one entry for scalar operators, many for in/between/one_of
+  bool negate = 4;
+}
+
+// A privacy policy embedded in protected data and evaluated before decryption.
+message Policy {
+  string version = 1;           // schema version, e.g. "1.0"
+  repeated Condition conditions = 2;
+  string combination = 3;       // "all" | "any" | "custom"
+  string custom_logic = 4;      // optional expression when combination == "custom"
+  map<string, string> metadata = 5;
+}
+
+// The requester's identity and context, evaluated against a Policy.
+message Identity {
+  string user_id = 1;
+  string role = 2;
+  string department = 3;
+  string purpose = 4;
+  string organization = 5;
+  string classification = 6;
+  string jurisdiction = 7;
+  map<string, string> attributes = 8; // location, device_type, delegated_from, ...
+}
+
+// Ambient request context (time, network) used by temporal/contextual conditions.
+message Context {
+  string timestamp = 1;   // RFC3339; empty => core uses its own clock
+  string ip_address = 2;
+  string session_id = 3;
+  string user_agent = 4;
+}
+
+// The result of evaluating a Policy against an Identity + Context.
+message PolicyEvaluation {
+  string decision = 1;    // "granted" | "denied"
+  string reason = 2;
+  repeated ConditionResult evaluated_conditions = 3;
+}
+
+message ConditionResult {
+  string type = 1;
+  string expected = 2;
+  string actual = 3;
+  bool result = 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit evidence (docs/blueprint.md Appendix A.2, §15)
+// ─────────────────────────────────────────────────────────────────────────────
+
+message Evidence {
+  string evidence_id = 1;                 // UUID
+  string version = 2;
+  string timestamp = 3;                   // RFC3339
+  Identity actor = 4;
+  string resource_id = 5;
+  string resource_hash = 6;               // SHA-256 of ciphertext (hex)
+  Policy policy = 7;
+  string operation = 8;                   // "protect" | "access"
+  string result = 9;                      // "granted" | "denied"
+  PolicyEvaluation policy_evaluation = 10;
+  string signature = 11;                  // base64 Dilithium signature
+  string public_key_id = 12;
+  string signing_algorithm = 13;          // e.g. "dilithium_3"
+  string parent_hash = 14;                // SHA-256 of previous entry (hex); genesis otherwise
+  int64 position = 15;                    // 0-based index in the chain
+  map<string, string> metadata = 16;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Keys (docs/blueprint.md Appendix A.3, §16)
+// ─────────────────────────────────────────────────────────────────────────────
+
+message KeyInfo {
+  string key_id = 1;
+  string version = 2;
+  string algorithm = 3;   // kyber_768, dilithium_3, ...
+  string type = 4;        // "encryption" | "signing"
+  string public_key = 5;  // base64
+  string status = 6;      // created | active | rotated | revoked | expired | archived
+  string created_at = 7;
+  string expires_at = 8;
+  string rotated_at = 9;
+  string revoked_at = 10;
+  string organization = 11;
+  string owner = 12;
+  map<string, string> metadata = 13;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RPC request/response messages
+// ─────────────────────────────────────────────────────────────────────────────
+
+message GenerateKeyRequest {
+  string algorithm = 1;   // default kyber_768
+  string type = 2;        // "encryption" | "signing"
+  string organization = 3;
+  string owner = 4;
+  map<string, string> metadata = 5;
+}
+message GenerateKeyResponse { KeyInfo key = 1; }
+
+message RotateKeyRequest { string key_id = 1; string grace_period = 2; }
+message RotateKeyResponse { string old_key_id = 1; string new_key_id = 2; string rotated_at = 3; string grace_period = 4; }
+
+message RevokeKeyRequest { string key_id = 1; string reason = 2; }
+message RevokeKeyResponse { string key_id = 1; string revoked_at = 2; }
+
+message GetPublicKeyRequest { string key_id = 1; }
+message GetPublicKeyResponse { KeyInfo key = 1; }
+
+message ProtectRequest {
+  bytes plaintext = 1;
+  Policy policy = 2;
+  string algorithm = 3;   // optional, default kyber_768
+  string key_id = 4;      // optional, generate a fresh key if empty
+  string resource_id = 5; // optional label for audit
+  Identity actor = 6;     // who is protecting (for audit)
+}
+message ProtectResponse {
+  bytes protected_data = 1; // serialized ProtectedData envelope (JSON)
+  string key_id = 2;
+  string algorithm = 3;
+  string policy_hash = 4;
+  string timestamp = 5;
+  Evidence evidence = 6;
+}
+
+message AccessRequest {
+  bytes protected_data = 1;
+  Identity identity = 2;
+  Context context = 3;
+}
+message AccessResponse {
+  bytes data = 1;
+  Evidence evidence = 2;
+}
+
+message SignRequest { bytes message = 1; string key_id = 2; string algorithm = 3; }
+message SignResponse { string signature = 1; string public_key_id = 2; string algorithm = 3; }
+
+message VerifyRequest { bytes message = 1; string signature = 2; string public_key_id = 3; string algorithm = 4; }
+message VerifyResponse { bool valid = 1; }
+
+message GenerateEvidenceRequest {
+  Identity actor = 1;
+  string resource_id = 2;
+  string resource_hash = 3;
+  Policy policy = 4;
+  string operation = 5;
+  PolicyEvaluation policy_evaluation = 6;
+  string signing_key_id = 7;
+  map<string, string> metadata = 8;
+}
+message GenerateEvidenceResponse { Evidence evidence = 1; }
+
+message VerifyEvidenceRequest { Evidence evidence = 1; bool reevaluate_policy = 2; }
+message VerifyEvidenceResponse {
+  bool verified = 1;
+  bool signature_valid = 2;
+  bool chain_valid = 3;
+  bool policy_compliant = 4;
+  string detail = 5;
+}
+
+message GetEvidenceLogRequest {
+  string resource_id = 1;
+  string actor_id = 2;
+  string start_time = 3;
+  string end_time = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+message GetEvidenceLogResponse {
+  repeated Evidence entries = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool chain_verified = 5;
+}
+
+message HealthRequest {}
+message HealthResponse { string status = 1; string version = 2; map<string, string> services = 3; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Service (docs/SYSTEM_ARCHITECTURE.md §7.3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+service PrivyQCore {
+  // Key management
+  rpc GenerateKey (GenerateKeyRequest) returns (GenerateKeyResponse);
+  rpc RotateKey (RotateKeyRequest) returns (RotateKeyResponse);
+  rpc RevokeKey (RevokeKeyRequest) returns (RevokeKeyResponse);
+  rpc GetPublicKey (GetPublicKeyRequest) returns (GetPublicKeyResponse);
+
+  // Encryption / decryption
+  rpc Protect (ProtectRequest) returns (ProtectResponse);
+  rpc Access (AccessRequest) returns (AccessResponse);
+
+  // Signatures
+  rpc Sign (SignRequest) returns (SignResponse);
+  rpc Verify (VerifyRequest) returns (VerifyResponse);
+
+  // Audit
+  rpc GenerateEvidence (GenerateEvidenceRequest) returns (GenerateEvidenceResponse);
+  rpc VerifyEvidence (VerifyEvidenceRequest) returns (VerifyEvidenceResponse);
+  rpc GetEvidenceLog (GetEvidenceLogRequest) returns (GetEvidenceLogResponse);
+
+  // Ops
+  rpc Health (HealthRequest) returns (HealthResponse);
+}

@@ -1,0 +1,117 @@
+# PrivyQ production manifests (ARCH §19.2). Apply with:
+#   kubectl apply -f deploy/kubernetes/privyq.yaml
+# Secrets (db-url, master-password, jwt-secret) must be created out of band:
+#   kubectl create secret generic privyq-secrets \
+#     --from-literal=db-url=postgres://... \
+#     --from-literal=master-password=... \
+#     --from-literal=jwt-secret=...
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: privyq-core
+  labels: { app: privyq-core }
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: privyq-core }
+  template:
+    metadata:
+      labels: { app: privyq-core }
+    spec:
+      containers:
+        - name: core
+          image: privyq/core:latest
+          ports: [{ containerPort: 50051 }]
+          env:
+            - name: GRPC_PORT
+              value: "50051"
+            - name: KEY_STORAGE
+              value: "local"
+            - name: DB_URL
+              valueFrom: { secretKeyRef: { name: privyq-secrets, key: db-url } }
+            - name: KEY_MASTER_PASSWORD
+              valueFrom: { secretKeyRef: { name: privyq-secrets, key: master-password } }
+          resources:
+            requests: { memory: "512Mi", cpu: "250m" }
+            limits: { memory: "2Gi", cpu: "1000m" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: privyq-core
+spec:
+  selector: { app: privyq-core }
+  ports: [{ port: 50051, targetPort: 50051 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: privyq-gateway
+  labels: { app: privyq-gateway }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: privyq-gateway }
+  template:
+    metadata:
+      labels: { app: privyq-gateway }
+    spec:
+      containers:
+        - name: gateway
+          image: privyq/gateway:latest
+          ports: [{ containerPort: 8000 }]
+          env:
+            - name: CORE_ADDRESS
+              value: "privyq-core:50051"
+            - name: AUTH_ENABLED
+              value: "true"
+            - name: SECRET_KEY
+              valueFrom: { secretKeyRef: { name: privyq-secrets, key: jwt-secret } }
+          readinessProbe:
+            httpGet: { path: /api/v1/health, port: 8000 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { memory: "256Mi", cpu: "100m" }
+            limits: { memory: "512Mi", cpu: "500m" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: privyq-gateway
+spec:
+  selector: { app: privyq-gateway }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: privyq-frontend
+  labels: { app: privyq-frontend }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: privyq-frontend }
+  template:
+    metadata:
+      labels: { app: privyq-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: privyq/frontend:latest
+          ports: [{ containerPort: 3000 }]
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://api.privyq.example"
+          resources:
+            requests: { memory: "128Mi", cpu: "100m" }
+            limits: { memory: "512Mi", cpu: "500m" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: privyq-frontend
+spec:
+  type: LoadBalancer
+  selector: { app: privyq-frontend }
+  ports: [{ port: 80, targetPort: 3000 }]

@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+python-jose[cryptography]>=3.3
+# PrivyQ SDK (installed from the monorepo path in Docker/CI)
+privyq @ file:../sdk-python
