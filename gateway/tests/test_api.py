@@ -70,5 +70,39 @@ def test_key_generation(client):
     assert key["key_id"] and key["algorithm"] == "kyber_768" and key["status"] == "active"
 
 
+def test_list_keys(client):
+    # Generating a key should make it appear in the list.
+    gen = client.post("/api/v1/keys/generate", json={"type": "encryption", "owner": "lister"})
+    assert gen.status_code == 200
+    r = client.get("/api/v1/keys")
+    assert r.status_code == 200, r.text
+    keys = r.json()["keys"]
+    assert any(k["key_id"] == gen.json()["key_id"] for k in keys)
+    assert all("status" in k and "algorithm" in k for k in keys)
+
+
+def test_policy_evaluate(client):
+    policy = {
+        "conditions": [
+            {"type": "role", "operator": "equals", "value": "doctor"},
+            {"type": "department", "operator": "in", "value": ["cardiology"]},
+        ],
+        "combination": "all",
+    }
+    granted = client.post("/api/v1/policy/evaluate", json={
+        "policy": policy,
+        "identity": {"role": "doctor", "department": "cardiology"},
+    })
+    assert granted.status_code == 200, granted.text
+    assert granted.json()["decision"] == "granted"
+
+    denied = client.post("/api/v1/policy/evaluate", json={
+        "policy": policy,
+        "identity": {"role": "nurse", "department": "cardiology"},
+    })
+    assert denied.json()["decision"] == "denied"
+    assert denied.json()["evaluated_conditions"]  # per-condition breakdown present
+
+
 def test_openapi_available(client):
     assert client.get("/openapi.json").status_code == 200

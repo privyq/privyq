@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends
 from ..auth.auth import authenticate
-from ..schemas.models import KeyGenerateRequest, KeyResponse
+from ..schemas.models import KeyGenerateRequest, KeyListResponse, KeyResponse
 from ..services import privyq_client
 
 router = APIRouter()
+
+
+@router.get("/keys", response_model=KeyListResponse, tags=["keys"])
+async def list_keys(_identity: dict = Depends(authenticate)):
+    """List all managed keys with their status."""
+    return privyq_client.list_keys()
 
 
 @router.post("/keys/generate", response_model=KeyResponse, tags=["keys"])

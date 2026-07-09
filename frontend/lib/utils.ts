@@ -22,6 +22,14 @@ export function toBase64(input: string): string {
   return window.btoa(unescape(encodeURIComponent(input)));
 }
 
+/** base64-decode to a UTF-8 string (browser + node safe). */
+export function fromBase64(input: string): string {
+  if (typeof window === "undefined") {
+    return Buffer.from(input, "base64").toString("utf-8");
+  }
+  return decodeURIComponent(escape(window.atob(input)));
+}
+
 /** Format an ISO timestamp as a short local time. */
 export function shortTime(iso: string): string {
   const d = new Date(iso);

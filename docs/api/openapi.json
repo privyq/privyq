@@ -343,6 +343,72 @@
         }
       }
     },
+    "/api/v1/keys": {
+      "get": {
+        "tags": [
+          "keys"
+        ],
+        "summary": "List Keys",
+        "description": "List all managed keys with their status.",
+        "operationId": "list_keys_api_v1_keys_get",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/keys/generate": {
       "post": {
         "tags": [
@@ -549,6 +615,82 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy/evaluate": {
+      "post": {
+        "tags": [
+          "policy"
+        ],
+        "summary": "Evaluate",
+        "description": "Evaluate a policy against an identity/context \u2014 no side effects.\n\nPowers the interactive policy playground; runs the core's real policy engine.",
+        "operationId": "evaluate_api_v1_policy_evaluate_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyEvaluateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyEvaluationResponse"
+                }
               }
             }
           },
@@ -841,6 +983,83 @@
         "type": "object",
         "title": "KeyGenerateRequest"
       },
+      "KeyInfoModel": {
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "title": "Key Id",
+            "default": ""
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm",
+            "default": ""
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": ""
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": ""
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "default": ""
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At",
+            "default": ""
+          },
+          "rotated_at": {
+            "type": "string",
+            "title": "Rotated At",
+            "default": ""
+          },
+          "revoked_at": {
+            "type": "string",
+            "title": "Revoked At",
+            "default": ""
+          },
+          "organization": {
+            "type": "string",
+            "title": "Organization",
+            "default": ""
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "KeyInfoModel"
+      },
+      "KeyListResponse": {
+        "properties": {
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/KeyInfoModel"
+            },
+            "type": "array",
+            "title": "Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "keys"
+        ],
+        "title": "KeyListResponse"
+      },
       "KeyResponse": {
         "properties": {
           "key_id": {
@@ -878,6 +1097,62 @@
           "created_at"
         ],
         "title": "KeyResponse"
+      },
+      "PolicyEvaluateRequest": {
+        "properties": {
+          "policy": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Policy"
+          },
+          "identity": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Identity"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "policy",
+          "identity"
+        ],
+        "title": "PolicyEvaluateRequest"
+      },
+      "PolicyEvaluationResponse": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "title": "Decision",
+            "default": "denied"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "evaluated_conditions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evaluated Conditions"
+          }
+        },
+        "type": "object",
+        "title": "PolicyEvaluationResponse"
       },
       "ProtectRequest": {
         "properties": {

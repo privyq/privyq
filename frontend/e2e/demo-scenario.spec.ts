@@ -1,75 +1,66 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * The medical-records demo scenario (blueprint.md §25) driven end to end through
- * the UI in offline demo mode:
+ * The medical-records flow (blueprint.md §25) driven end to end against the REAL
+ * backend: create a protected record, then attempt access as different people.
  *
- *   1. Authorized access  — as the Doctor persona (Dr. Amara Okafor), request
- *      access to a protected cardiology record → GRANTED, vault unlocks, the
- *      plaintext is revealed.
- *   2. Unauthorized access — switch the header role switcher to the Nurse persona
- *      (Nurse Bello Musa) and request again → DENIED, the vault stays locked and
- *      no plaintext is shown.
- *   3. Audit verification  — on /audit, verify a signed, hash-chained evidence
- *      entry → all checks green.
- *   4. Tamper detection (§25.4) — apply a tamper simulation (edit signature) and
- *      re-verify → verification fails, tampering is detected.
+ *   1. Create   — protect a new patient record from the dashboard.
+ *   2. Granted  — as the Doctor persona, request access → GRANTED, plaintext shown.
+ *   3. Denied   — switch to the Nurse persona, request access → DENIED.
+ *   4. Audit    — the evidence log shows the protect + both access decisions.
  *
- * `record.plaintext` for patient_001 contains "continue beta-blocker" — we use
- * that string as the tell-tale for whether the record was actually decrypted.
+ * This requires the gateway/core to be running (NEXT_PUBLIC_API_URL, default
+ * http://localhost:8000). When the backend is offline (e.g. a frontend-only CI
+ * job) the whole scenario is skipped rather than failing.
  */
 
-const PLAINTEXT_TELL = /continue beta-blocker/i;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const NOTES = "Echo: mild LV hypertrophy. Plan: continue beta-blocker.";
 
-test("BP §25 flow: doctor granted, nurse denied, audit verifies, tamper fails", async ({
+test("§25 flow against the live core: create → doctor granted → nurse denied → audit", async ({
   page,
+  request,
 }) => {
-  // ── 1. Authorized access — Doctor persona (the default) ──────────────────
-  await page.goto("/record/patient_001");
-  await expect(page.locator("h1")).toContainText("John Doe");
+  // Skip cleanly unless the backend is up AND the core is actually reachable
+  // (a degraded gateway with an unreachable core cannot run this flow).
+  let healthy = false;
+  try {
+    const res = await request.get(`${API_BASE}/api/v1/health`, { timeout: 3000 });
+    if (res.ok()) {
+      const body = await res.json();
+      healthy = body?.status === "healthy" && body?.services?.core === "healthy";
+    }
+  } catch {
+    healthy = false;
+  }
+  test.skip(!healthy, `no healthy core at ${API_BASE}`);
 
-  // Default acting persona is the Doctor.
-  await expect(page.getByLabel("Acting as persona")).toHaveValue("amara");
+  // 1. Create a protected record from the dashboard (as the default Doctor).
+  await page.goto("/");
+  await page.getByPlaceholder("e.g. John Doe").fill("John Doe");
+  await page.getByPlaceholder(/Echo: mild/).fill(NOTES);
+  await page.getByRole("button", { name: /Protect record/i }).click();
+  await expect(page.getByText(/Protected .John Doe/i)).toBeVisible({ timeout: 10000 });
 
-  await page.getByRole("button", { name: "Request access" }).click();
+  // 2. Open the record and request access as the Doctor → GRANTED.
+  await page.goto("/records");
+  await page.getByText("John Doe").first().click();
+  await page.waitForURL(/\/record\//);
+  await page.getByRole("button", { name: /Request access/i }).click();
+  await expect(page.getByText("UNLOCKED", { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(/beta-blocker/)).toBeVisible();
 
-  // Granted: verdict flips, the vault reports "unlocked", plaintext is revealed.
-  await expect(page.getByRole("status")).toContainText("Access granted");
-  await expect(page.getByText("unlocked", { exact: true })).toBeVisible();
-  await expect(page.getByText(PLAINTEXT_TELL)).toBeVisible();
+  // 3. Switch to the Nurse persona and request again → DENIED.
+  await page.evaluate(() => localStorage.setItem("privyq.persona", "bello"));
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: /Request access/i }).click();
+  await expect(page.getByText("DENIED", { exact: true }).first()).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(/beta-blocker/)).toHaveCount(0);
 
-  // ── 2. Unauthorized access — switch to the Nurse persona ─────────────────
-  await page.getByLabel("Acting as persona").selectOption("bello");
-
-  // Switching persona resets the card back to the locked / idle state.
-  await expect(page.getByText(PLAINTEXT_TELL)).toHaveCount(0);
-
-  await page.getByRole("button", { name: "Request access" }).click();
-
-  // Denied: verdict says denied, the vault stays locked, no plaintext leaks.
-  await expect(page.getByRole("status")).toContainText("Denied");
-  await expect(page.getByText("locked", { exact: true })).toBeVisible();
-  await expect(page.getByText("unlocked", { exact: true })).toHaveCount(0);
-  await expect(page.getByText(PLAINTEXT_TELL)).toHaveCount(0);
-
-  // ── 3. Audit verification — a genuine entry verifies cleanly ─────────────
+  // 4. The evidence log records the protect + both access decisions.
   await page.goto("/audit");
   await expect(page.locator("h1")).toContainText("Evidence log");
-
-  await page.getByRole("button", { name: "Verify evidence" }).click();
-  await expect(
-    page.getByText("Verified — access was policy-compliant"),
-  ).toBeVisible();
-
-  // ── 4. Tamper detection (§25.4) — editing the signature breaks it ────────
-  await page.getByRole("button", { name: "Edit signature" }).click();
-  await page.getByRole("button", { name: "Verify evidence" }).click();
-
-  await expect(
-    page.getByText("Verification failed — tampering detected"),
-  ).toBeVisible();
-  // The "Verified" state must no longer be shown.
-  await expect(
-    page.getByText("Verified — access was policy-compliant"),
-  ).toHaveCount(0);
+  await expect(page.locator("tbody tr")).not.toHaveCount(0);
+  await expect(page.getByText("granted").first()).toBeVisible();
+  await expect(page.getByText("denied").first()).toBeVisible();
 });

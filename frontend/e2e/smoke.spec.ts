@@ -1,35 +1,30 @@
 import { test, expect, type ConsoleMessage } from "@playwright/test";
 
 /**
- * Smoke test — every one of the 7 app routes loads and renders its <h1> heading,
- * with no unexpected console errors or uncaught page exceptions.
- *
- * Runs against offline demo mode (no gateway). Expected offline noise — the
- * failed fetches to the gateway (http://localhost:8000) and the Google Fonts
- * <link> that cannot load without network — is filtered out; anything else
- * (React errors, real JS exceptions) fails the test.
+ * Smoke test — every static app route loads and renders its <h1>, with no
+ * uncaught page exceptions. The pages degrade gracefully when the gateway is
+ * offline (they show "core offline" states), so the expected offline noise —
+ * refused gateway fetches and the Google-Fonts <link> — is filtered out;
+ * anything else (React errors, real JS exceptions) fails the test.
  */
 
 const ROUTES: { path: string; heading: RegExp }[] = [
-  { path: "/", heading: /Welcome,/ },
-  { path: "/upload", heading: /Upload a patient record/ },
-  { path: "/records", heading: /Protected records/ },
-  { path: "/record/patient_001", heading: /John Doe/ },
+  { path: "/", heading: /Secure a patient record/ },
+  { path: "/upload", heading: /New protected record/ },
+  { path: "/records", heading: /Records/ },
   { path: "/audit", heading: /Evidence log/ },
-  { path: "/keys", heading: /Key management/ },
+  { path: "/keys", heading: /Keys/ },
   { path: "/playground", heading: /Policy playground/ },
 ];
 
 /** Console-error text that is expected while the gateway/core is offline. */
 const IGNORED_ERROR = [
-  "localhost:8000", // gateway REST calls (health, evidence log) — refused offline
+  "localhost:8000",
   "ERR_CONNECTION_REFUSED",
   "ERR_NETWORK",
-  "ERR_INTERNET_DISCONNECTED",
-  "ERR_NAME_NOT_RESOLVED",
   "net::",
   "Failed to load resource",
-  "fonts.googleapis.com", // fonts loaded via <link>, may be unreachable offline
+  "fonts.googleapis.com",
   "fonts.gstatic.com",
   "favicon.ico",
 ];
@@ -39,26 +34,17 @@ function isIgnorable(text: string): boolean {
 }
 
 for (const { path, heading } of ROUTES) {
-  test(`route ${path} renders its heading without console errors`, async ({
-    page,
-  }) => {
+  test(`route ${path} renders its heading without page errors`, async ({ page }) => {
     const errors: string[] = [];
-
     page.on("console", (msg: ConsoleMessage) => {
-      if (msg.type() === "error" && !isIgnorable(msg.text())) {
-        errors.push(msg.text());
-      }
+      if (msg.type() === "error" && !isIgnorable(msg.text())) errors.push(msg.text());
     });
     page.on("pageerror", (err) => {
       if (!isIgnorable(err.message)) errors.push(err.message);
     });
 
     await page.goto(path, { waitUntil: "networkidle" });
-
     await expect(page.locator("h1")).toContainText(heading);
-
-    expect(errors, `console errors on ${path}:\n${errors.join("\n")}`).toEqual(
-      [],
-    );
+    expect(errors, `unexpected errors on ${path}:\n${errors.join("\n")}`).toEqual([]);
   });
 }

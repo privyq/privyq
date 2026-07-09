@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { IdentityProvider } from "@/components/providers/identity-provider";
+import { RecordsProvider } from "@/components/providers/records-provider";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
@@ -49,10 +50,12 @@ export default function RootLayout({
         </div>
 
         <IdentityProvider>
-          <SiteHeader />
-          <main id="main" className="mx-auto max-w-wrap px-5 py-8 md:py-10">
-            {children}
-          </main>
+          <RecordsProvider>
+            <SiteHeader />
+            <main id="main" className="mx-auto max-w-wrap px-5 py-8 md:py-10">
+              {children}
+            </main>
+          </RecordsProvider>
         </IdentityProvider>
       </body>
     </html>

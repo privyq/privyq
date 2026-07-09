@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from .config import settings
 from .middleware.ratelimit import LoggingMiddleware, RateLimitMiddleware
-from .routes import access, evidence, health, keys, protect, verify
+from .routes import access, evidence, health, keys, policy, protect, verify
 
 app = FastAPI(
     title="PrivyQ Gateway",
@@ -28,7 +28,7 @@ app.add_middleware(
 )
 
 _API = "/api/v1"
-for module in (protect, access, verify, evidence, keys, health):
+for module in (protect, access, verify, evidence, keys, policy, health):
     app.include_router(module.router, prefix=_API)
 
 

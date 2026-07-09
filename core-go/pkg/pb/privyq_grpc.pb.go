@@ -31,6 +31,8 @@ const (
 	PrivyQCore_RotateKey_FullMethodName        = "/privyq.v1.PrivyQCore/RotateKey"
 	PrivyQCore_RevokeKey_FullMethodName        = "/privyq.v1.PrivyQCore/RevokeKey"
 	PrivyQCore_GetPublicKey_FullMethodName     = "/privyq.v1.PrivyQCore/GetPublicKey"
+	PrivyQCore_ListKeys_FullMethodName         = "/privyq.v1.PrivyQCore/ListKeys"
+	PrivyQCore_EvaluatePolicy_FullMethodName   = "/privyq.v1.PrivyQCore/EvaluatePolicy"
 	PrivyQCore_Protect_FullMethodName          = "/privyq.v1.PrivyQCore/Protect"
 	PrivyQCore_Access_FullMethodName           = "/privyq.v1.PrivyQCore/Access"
 	PrivyQCore_Sign_FullMethodName             = "/privyq.v1.PrivyQCore/Sign"
@@ -50,6 +52,9 @@ type PrivyQCoreClient interface {
 	RotateKey(ctx context.Context, in *RotateKeyRequest, opts ...grpc.CallOption) (*RotateKeyResponse, error)
 	RevokeKey(ctx context.Context, in *RevokeKeyRequest, opts ...grpc.CallOption) (*RevokeKeyResponse, error)
 	GetPublicKey(ctx context.Context, in *GetPublicKeyRequest, opts ...grpc.CallOption) (*GetPublicKeyResponse, error)
+	ListKeys(ctx context.Context, in *ListKeysRequest, opts ...grpc.CallOption) (*ListKeysResponse, error)
+	// Policy evaluation (no side effects — used by the playground)
+	EvaluatePolicy(ctx context.Context, in *EvaluatePolicyRequest, opts ...grpc.CallOption) (*EvaluatePolicyResponse, error)
 	// Encryption / decryption
 	Protect(ctx context.Context, in *ProtectRequest, opts ...grpc.CallOption) (*ProtectResponse, error)
 	Access(ctx context.Context, in *AccessRequest, opts ...grpc.CallOption) (*AccessResponse, error)
@@ -106,6 +111,26 @@ func (c *privyQCoreClient) GetPublicKey(ctx context.Context, in *GetPublicKeyReq
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetPublicKeyResponse)
 	err := c.cc.Invoke(ctx, PrivyQCore_GetPublicKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *privyQCoreClient) ListKeys(ctx context.Context, in *ListKeysRequest, opts ...grpc.CallOption) (*ListKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKeysResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_ListKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *privyQCoreClient) EvaluatePolicy(ctx context.Context, in *EvaluatePolicyRequest, opts ...grpc.CallOption) (*EvaluatePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EvaluatePolicyResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_EvaluatePolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -201,6 +226,9 @@ type PrivyQCoreServer interface {
 	RotateKey(context.Context, *RotateKeyRequest) (*RotateKeyResponse, error)
 	RevokeKey(context.Context, *RevokeKeyRequest) (*RevokeKeyResponse, error)
 	GetPublicKey(context.Context, *GetPublicKeyRequest) (*GetPublicKeyResponse, error)
+	ListKeys(context.Context, *ListKeysRequest) (*ListKeysResponse, error)
+	// Policy evaluation (no side effects — used by the playground)
+	EvaluatePolicy(context.Context, *EvaluatePolicyRequest) (*EvaluatePolicyResponse, error)
 	// Encryption / decryption
 	Protect(context.Context, *ProtectRequest) (*ProtectResponse, error)
 	Access(context.Context, *AccessRequest) (*AccessResponse, error)
@@ -234,6 +262,12 @@ func (UnimplementedPrivyQCoreServer) RevokeKey(context.Context, *RevokeKeyReques
 }
 func (UnimplementedPrivyQCoreServer) GetPublicKey(context.Context, *GetPublicKeyRequest) (*GetPublicKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublicKey not implemented")
+}
+func (UnimplementedPrivyQCoreServer) ListKeys(context.Context, *ListKeysRequest) (*ListKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListKeys not implemented")
+}
+func (UnimplementedPrivyQCoreServer) EvaluatePolicy(context.Context, *EvaluatePolicyRequest) (*EvaluatePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EvaluatePolicy not implemented")
 }
 func (UnimplementedPrivyQCoreServer) Protect(context.Context, *ProtectRequest) (*ProtectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Protect not implemented")
@@ -348,6 +382,42 @@ func _PrivyQCore_GetPublicKey_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PrivyQCoreServer).GetPublicKey(ctx, req.(*GetPublicKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PrivyQCore_ListKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).ListKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_ListKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).ListKeys(ctx, req.(*ListKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PrivyQCore_EvaluatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EvaluatePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).EvaluatePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_EvaluatePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).EvaluatePolicy(ctx, req.(*EvaluatePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -518,6 +588,14 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublicKey",
 			Handler:    _PrivyQCore_GetPublicKey_Handler,
+		},
+		{
+			MethodName: "ListKeys",
+			Handler:    _PrivyQCore_ListKeys_Handler,
+		},
+		{
+			MethodName: "EvaluatePolicy",
+			Handler:    _PrivyQCore_EvaluatePolicy_Handler,
 		},
 		{
 			MethodName: "Protect",

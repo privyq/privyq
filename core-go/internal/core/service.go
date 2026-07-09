@@ -297,6 +297,15 @@ func (s *Service) EvidenceLog(f audit.Filter, page, pageSize int) ([]types.Evide
 	return entries[start:end], total, chainOK, nil
 }
 
+// ListKeys returns public metadata for every managed key.
+func (s *Service) ListKeys() ([]types.KeyInfo, error) { return s.Keys.List() }
+
+// EvaluatePolicy runs the policy engine against an identity+context WITHOUT
+// decrypting anything or writing evidence. Used by the playground.
+func (s *Service) EvaluatePolicy(policy types.Policy, identity types.Identity, ctx types.Context) types.PolicyEvaluation {
+	return policies.Evaluate(policy, identity, ctx)
+}
+
 // Version reports the core version.
 func (s *Service) Version() string { return s.version }
 

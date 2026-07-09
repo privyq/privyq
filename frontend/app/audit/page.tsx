@@ -1,124 +1,129 @@
 "use client";
 
 import * as React from "react";
-import { ShieldCheck, Link2 } from "lucide-react";
-import type { EvidenceLogEntry } from "@/lib/types";
-import { api } from "@/services/api";
-import { DEMO_EVIDENCE } from "@/lib/demo-data";
+import { ShieldCheck, CheckCircle2, XCircle, CloudOff, RefreshCw } from "lucide-react";
+import { api, CoreOfflineError } from "@/services/api";
+import type { AuditEntry, VerifyResult } from "@/lib/live";
 import { cn, shortDateTime } from "@/lib/utils";
 import { PageHeading } from "@/components/page-heading";
-import { EvidenceVerifier } from "@/components/evidence-verifier";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function AuditPage() {
-  const [entries, setEntries] = React.useState<EvidenceLogEntry[]>(DEMO_EVIDENCE);
-  const [live, setLive] = React.useState(false);
-  const [selected, setSelected] = React.useState<EvidenceLogEntry>(
-    DEMO_EVIDENCE[0]!,
-  );
+  const [entries, setEntries] = React.useState<AuditEntry[]>([]);
+  const [chainVerified, setChainVerified] = React.useState<boolean | null>(null);
+  const [state, setState] = React.useState<"loading" | "ready" | "offline">("loading");
+  const [checks, setChecks] = React.useState<Record<string, VerifyResult>>({});
+
+  const load = React.useCallback(async () => {
+    setState("loading");
+    try {
+      const log = await api.evidenceLog({ page_size: 200 });
+      setEntries(log.entries);
+      setChainVerified(log.verified);
+      setState("ready");
+    } catch (err) {
+      setState(err instanceof CoreOfflineError ? "offline" : "ready");
+    }
+  }, []);
 
   React.useEffect(() => {
-    let active = true;
-    api
-      .evidenceLog({ page: 1, page_size: 50 })
-      .then((res) => {
-        if (active && res.entries.length > 0) {
-          setEntries(res.entries);
-          setSelected(res.entries[0]!);
-          setLive(true);
-        }
-      })
-      .catch(() => {
-        /* offline — keep demo evidence */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+    void load();
+  }, [load]);
+
+  async function verifyOne(entry: AuditEntry) {
+    try {
+      const res = await api.verify(entry);
+      setChecks((prev) => ({ ...prev, [entry.evidence_id]: res }));
+    } catch {
+      /* ignore */
+    }
+  }
 
   return (
     <div>
       <PageHeading
         eyebrow="Audit"
         title="Evidence log"
-        description="Every access attempt — granted or denied — is a Dilithium-signed, hash-chained entry. Select one and try to tamper with it."
+        description="Every protect and access decision made by the core, in one hash-chained, signed log. Verify any entry — or the whole chain — cryptographically."
       >
-        <Badge variant={live ? "granted" : "amber"}>
-          {live ? "live core" : "demo data"}
-        </Badge>
+        <Button variant="ghost" onClick={load}><RefreshCw className="h-4 w-4" /> Refresh</Button>
       </PageHeading>
 
-      <div className="mb-5 flex items-center gap-2 rounded-[12px] border border-mint/40 bg-mint/10 px-4 py-3 text-sm font-semibold text-[#0a9c6b]">
-        <ShieldCheck className="h-5 w-5" />
-        All {entries.length} entries verified — chain intact, no tampering
-        detected
-      </div>
+      {state === "offline" ? (
+        <Card><CardContent className="flex items-center gap-2 py-10 text-amber">
+          <CloudOff className="h-5 w-5" /> Core offline — start the stack (make dev) to see the live evidence log.
+        </CardContent></Card>
+      ) : (
+        <>
+          <Card className="mb-4">
+            <CardContent className="flex flex-wrap items-center gap-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ShieldCheck className={cn("h-5 w-5", chainVerified ? "text-mint" : "text-muted")} />
+                {chainVerified === null
+                  ? "—"
+                  : chainVerified
+                    ? `All ${entries.length} entries verified — no tampering detected`
+                    : "Chain verification FAILED"}
+              </div>
+            </CardContent>
+          </Card>
 
-      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Chain</CardTitle>
-          </CardHeader>
-          <CardContent className="scroll-thin max-h-[560px] overflow-y-auto">
-            <ul className="flex flex-col gap-2">
-              {entries.map((e, i) => {
-                const isSel = e.evidence_id === selected.evidence_id;
-                return (
-                  <li key={e.evidence_id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelected(e)}
-                      className={cn(
-                        "w-full rounded-[10px] border px-3 py-2.5 text-left transition-colors",
-                        isSel
-                          ? "border-ink bg-tint"
-                          : "border-line bg-white hover:border-ink/40",
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            e.result === "granted" ? "granted" : "denied"
-                          }
-                          size="sm"
-                        >
-                          {e.result}
-                        </Badge>
-                        <span className="font-mono text-xs font-semibold">
-                          {e.evidence_id}
-                        </span>
-                        <span className="ml-auto font-mono text-[.64rem] text-muted">
-                          {shortDateTime(e.timestamp)}
-                        </span>
-                      </div>
-                      <div className="mt-1 flex items-center gap-1.5 font-mono text-[.66rem] text-muted">
-                        {i > 0 && <Link2 className="h-3 w-3 text-blue" />}
-                        {e.actor.user_id} · {e.operation} ·{" "}
-                        {e.resource.resource_id}
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Verify evidence</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EvidenceVerifier entry={selected} />
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader><CardTitle>{entries.length} entries</CardTitle></CardHeader>
+            <CardContent>
+              {state === "loading" ? (
+                <p className="text-muted">Loading…</p>
+              ) : entries.length === 0 ? (
+                <p className="text-sm text-muted">No evidence yet — protect a record and request access to generate entries.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="text-xs uppercase tracking-wide text-muted">
+                      <tr>
+                        <th className="px-2 py-2">When</th>
+                        <th className="px-2 py-2">Actor</th>
+                        <th className="px-2 py-2">Op</th>
+                        <th className="px-2 py-2">Resource</th>
+                        <th className="px-2 py-2">Result</th>
+                        <th className="px-2 py-2">Verify</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map((e) => {
+                        const c = checks[e.evidence_id];
+                        return (
+                          <tr key={e.evidence_id} className="border-t border-line">
+                            <td className="whitespace-nowrap px-2 py-2 font-mono text-xs text-muted">{shortDateTime(e.timestamp)}</td>
+                            <td className="px-2 py-2">{e.actor?.user_id ?? "—"}</td>
+                            <td className="px-2 py-2 font-mono text-xs">{e.operation}</td>
+                            <td className="px-2 py-2 font-mono text-xs text-muted">{e.resource_id}</td>
+                            <td className="px-2 py-2">
+                              <Badge variant={e.result === "granted" ? "granted" : "denied"}>{e.result}</Badge>
+                            </td>
+                            <td className="px-2 py-2">
+                              {c ? (
+                                c.verified ? (
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-mint"><CheckCircle2 className="h-4 w-4" /> valid</span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-red"><XCircle className="h-4 w-4" /> invalid</span>
+                                )
+                              ) : (
+                                <button className="text-xs font-semibold text-blue hover:underline" onClick={() => verifyOne(e)}>verify</button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

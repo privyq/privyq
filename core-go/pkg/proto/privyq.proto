@@ -201,6 +201,16 @@ message GetEvidenceLogResponse {
   bool chain_verified = 5;
 }
 
+message ListKeysRequest {}
+message ListKeysResponse { repeated KeyInfo keys = 1; }
+
+message EvaluatePolicyRequest {
+  Policy policy = 1;
+  Identity identity = 2;
+  Context context = 3;
+}
+message EvaluatePolicyResponse { PolicyEvaluation evaluation = 1; }
+
 message HealthRequest {}
 message HealthResponse { string status = 1; string version = 2; map<string, string> services = 3; }
 
@@ -214,6 +224,10 @@ service PrivyQCore {
   rpc RotateKey (RotateKeyRequest) returns (RotateKeyResponse);
   rpc RevokeKey (RevokeKeyRequest) returns (RevokeKeyResponse);
   rpc GetPublicKey (GetPublicKeyRequest) returns (GetPublicKeyResponse);
+  rpc ListKeys (ListKeysRequest) returns (ListKeysResponse);
+
+  // Policy evaluation (no side effects — used by the playground)
+  rpc EvaluatePolicy (EvaluatePolicyRequest) returns (EvaluatePolicyResponse);
 
   // Encryption / decryption
   rpc Protect (ProtectRequest) returns (ProtectResponse);

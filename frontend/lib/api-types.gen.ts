@@ -86,6 +86,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Keys
+         * @description List all managed keys with their status.
+         */
+        get: operations["list_keys_api_v1_keys_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/keys/generate": {
         parameters: {
             query?: never;
@@ -140,6 +160,28 @@ export interface paths {
          * @description Revoke a key.
          */
         post: operations["revoke_api_v1_keys_revoke__key_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policy/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate
+         * @description Evaluate a policy against an identity/context — no side effects.
+         *
+         *     Powers the interactive policy playground; runs the core's real policy engine.
+         */
+        post: operations["evaluate_api_v1_policy_evaluate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -324,6 +366,69 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** KeyInfoModel */
+        KeyInfoModel: {
+            /**
+             * Key Id
+             * @default
+             */
+            key_id: string;
+            /**
+             * Algorithm
+             * @default
+             */
+            algorithm: string;
+            /**
+             * Type
+             * @default
+             */
+            type: string;
+            /**
+             * Public Key
+             * @default
+             */
+            public_key: string;
+            /**
+             * Status
+             * @default
+             */
+            status: string;
+            /**
+             * Created At
+             * @default
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * @default
+             */
+            expires_at: string;
+            /**
+             * Rotated At
+             * @default
+             */
+            rotated_at: string;
+            /**
+             * Revoked At
+             * @default
+             */
+            revoked_at: string;
+            /**
+             * Organization
+             * @default
+             */
+            organization: string;
+            /**
+             * Owner
+             * @default
+             */
+            owner: string;
+        };
+        /** KeyListResponse */
+        KeyListResponse: {
+            /** Keys */
+            keys: components["schemas"]["KeyInfoModel"][];
+        };
         /** KeyResponse */
         KeyResponse: {
             /** Key Id */
@@ -338,6 +443,38 @@ export interface components {
             status: string;
             /** Created At */
             created_at: string;
+        };
+        /** PolicyEvaluateRequest */
+        PolicyEvaluateRequest: {
+            /** Policy */
+            policy: {
+                [key: string]: unknown;
+            };
+            /** Identity */
+            identity: {
+                [key: string]: unknown;
+            };
+            /** Context */
+            context?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** PolicyEvaluationResponse */
+        PolicyEvaluationResponse: {
+            /**
+             * Decision
+             * @default denied
+             */
+            decision: string;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+            /** Evaluated Conditions */
+            evaluated_conditions?: {
+                [key: string]: unknown;
+            }[];
         };
         /** ProtectRequest */
         ProtectRequest: {
@@ -569,6 +706,38 @@ export interface operations {
             };
         };
     };
+    list_keys_api_v1_keys_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     generate_api_v1_keys_generate_post: {
         parameters: {
             query?: never;
@@ -660,6 +829,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_api_v1_policy_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyEvaluateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyEvaluationResponse"];
                 };
             };
             /** @description Validation Error */

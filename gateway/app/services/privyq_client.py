@@ -11,6 +11,7 @@ from typing import Any
 import privyq
 from google.protobuf.json_format import MessageToDict, ParseDict
 from privyq._proto import privyq_pb2 as pb
+from privyq.policies import to_proto_identity, to_proto_policy
 
 from ..config import settings
 
@@ -107,6 +108,31 @@ def revoke_key(key_id: str):
     _ensure_configured()
     resp = privyq.revoke_key(key_id)
     return {"key_id": resp.key_id, "revoked_at": resp.revoked_at}
+
+
+def list_keys():
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    resp = client.call("ListKeys", pb.ListKeysRequest())
+    return {"keys": [MessageToDict(k, preserving_proto_field_name=True) for k in resp.keys]}
+
+
+def evaluate_policy(policy: dict, identity: dict, context: dict | None):
+    """Run the core's policy engine with no side effects (playground)."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    ctx = context or {}
+    req = pb.EvaluatePolicyRequest(
+        policy=to_proto_policy(policy),
+        identity=to_proto_identity(identity),
+        context=pb.Context(
+            timestamp=ctx.get("timestamp", ""),
+            ip_address=ctx.get("ip_address", ""),
+            session_id=ctx.get("session_id", ""),
+        ),
+    )
+    resp = client.call("EvaluatePolicy", req)
+    return MessageToDict(resp.evaluation, preserving_proto_field_name=True)
 
 
 def health():

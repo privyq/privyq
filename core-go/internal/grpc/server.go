@@ -140,6 +140,23 @@ func (s *Server) GetEvidenceLog(_ context.Context, r *pb.GetEvidenceLogRequest) 
 	return &pb.GetEvidenceLogResponse{Entries: out, Total: int32(total), Page: r.Page, PageSize: r.PageSize, ChainVerified: chainOK}, nil
 }
 
+func (s *Server) ListKeys(_ context.Context, _ *pb.ListKeysRequest) (*pb.ListKeysResponse, error) {
+	infos, err := s.svc.ListKeys()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	out := make([]*pb.KeyInfo, 0, len(infos))
+	for _, i := range infos {
+		out = append(out, keyToPB(i))
+	}
+	return &pb.ListKeysResponse{Keys: out}, nil
+}
+
+func (s *Server) EvaluatePolicy(_ context.Context, r *pb.EvaluatePolicyRequest) (*pb.EvaluatePolicyResponse, error) {
+	eval := s.svc.EvaluatePolicy(policyFromPB(r.Policy), identityFromPB(r.Identity), contextFromPB(r.Context))
+	return &pb.EvaluatePolicyResponse{Evaluation: evalToPB(eval)}, nil
+}
+
 func (s *Server) Health(_ context.Context, _ *pb.HealthRequest) (*pb.HealthResponse, error) {
 	return &pb.HealthResponse{Status: "healthy", Version: s.svc.Version(), Services: map[string]string{"core": "healthy"}}, nil
 }

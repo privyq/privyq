@@ -4,121 +4,134 @@
 # source: privyq.proto
 # Protobuf Python Version: 7.35.0
 """Generated protocol buffer code."""
-
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
-_runtime_version.ValidateProtobufRuntimeVersion(_runtime_version.Domain.PUBLIC, 7, 35, 0, "", "privyq.proto")
+_runtime_version.ValidateProtobufRuntimeVersion(
+    _runtime_version.Domain.PUBLIC,
+    7,
+    35,
+    0,
+    '',
+    'privyq.proto'
+)
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0cprivyq.proto\x12\tprivyq.v1"K\n\tCondition\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08operator\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06negate\x18\x04 \x01(\x08"\xd2\x01\n\x06Policy\x12\x0f\n\x07version\x18\x01 \x01(\t\x12(\n\nconditions\x18\x02 \x03(\x0b\x32\x14.privyq.v1.Condition\x12\x13\n\x0b\x63ombination\x18\x03 \x01(\t\x12\x14\n\x0c\x63ustom_logic\x18\x04 \x01(\t\x12\x31\n\x08metadata\x18\x05 \x03(\x0b\x32\x1f.privyq.v1.Policy.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"\xfe\x01\n\x08Identity\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x0c\n\x04role\x18\x02 \x01(\t\x12\x12\n\ndepartment\x18\x03 \x01(\t\x12\x0f\n\x07purpose\x18\x04 \x01(\t\x12\x14\n\x0corganization\x18\x05 \x01(\t\x12\x16\n\x0e\x63lassification\x18\x06 \x01(\t\x12\x14\n\x0cjurisdiction\x18\x07 \x01(\t\x12\x37\n\nattributes\x18\x08 \x03(\x0b\x32#.privyq.v1.Identity.AttributesEntry\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"X\n\x07\x43ontext\x12\x11\n\ttimestamp\x18\x01 \x01(\t\x12\x12\n\nip_address\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\x12\x12\n\nuser_agent\x18\x04 \x01(\t"n\n\x10PolicyEvaluation\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x01(\t\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x38\n\x14\x65valuated_conditions\x18\x03 \x03(\x0b\x32\x1a.privyq.v1.ConditionResult"Q\n\x0f\x43onditionResult\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08\x65xpected\x18\x02 \x01(\t\x12\x0e\n\x06\x61\x63tual\x18\x03 \x01(\t\x12\x0e\n\x06result\x18\x04 \x01(\x08"\xe3\x03\n\x08\x45vidence\x12\x13\n\x0b\x65vidence_id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\t\x12"\n\x05\x61\x63tor\x18\x04 \x01(\x0b\x32\x13.privyq.v1.Identity\x12\x13\n\x0bresource_id\x18\x05 \x01(\t\x12\x15\n\rresource_hash\x18\x06 \x01(\t\x12!\n\x06policy\x18\x07 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\toperation\x18\x08 \x01(\t\x12\x0e\n\x06result\x18\t \x01(\t\x12\x36\n\x11policy_evaluation\x18\n \x01(\x0b\x32\x1b.privyq.v1.PolicyEvaluation\x12\x11\n\tsignature\x18\x0b \x01(\t\x12\x15\n\rpublic_key_id\x18\x0c \x01(\t\x12\x19\n\x11signing_algorithm\x18\r \x01(\t\x12\x13\n\x0bparent_hash\x18\x0e \x01(\t\x12\x10\n\x08position\x18\x0f \x01(\x03\x12\x33\n\x08metadata\x18\x10 \x03(\x0b\x32!.privyq.v1.Evidence.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"\xc9\x02\n\x07KeyInfo\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x12\n\npublic_key\x18\x05 \x01(\t\x12\x0e\n\x06status\x18\x06 \x01(\t\x12\x12\n\ncreated_at\x18\x07 \x01(\t\x12\x12\n\nexpires_at\x18\x08 \x01(\t\x12\x12\n\nrotated_at\x18\t \x01(\t\x12\x12\n\nrevoked_at\x18\n \x01(\t\x12\x14\n\x0corganization\x18\x0b \x01(\t\x12\r\n\x05owner\x18\x0c \x01(\t\x12\x32\n\x08metadata\x18\r \x03(\x0b\x32 .privyq.v1.KeyInfo.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"\xca\x01\n\x12GenerateKeyRequest\x12\x11\n\talgorithm\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x14\n\x0corganization\x18\x03 \x01(\t\x12\r\n\x05owner\x18\x04 \x01(\t\x12=\n\x08metadata\x18\x05 \x03(\x0b\x32+.privyq.v1.GenerateKeyRequest.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"6\n\x13GenerateKeyResponse\x12\x1f\n\x03key\x18\x01 \x01(\x0b\x32\x12.privyq.v1.KeyInfo"8\n\x10RotateKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x14\n\x0cgrace_period\x18\x02 \x01(\t"e\n\x11RotateKeyResponse\x12\x12\n\nold_key_id\x18\x01 \x01(\t\x12\x12\n\nnew_key_id\x18\x02 \x01(\t\x12\x12\n\nrotated_at\x18\x03 \x01(\t\x12\x14\n\x0cgrace_period\x18\x04 \x01(\t"2\n\x10RevokeKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x0e\n\x06reason\x18\x02 \x01(\t"7\n\x11RevokeKeyResponse\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x12\n\nrevoked_at\x18\x02 \x01(\t"%\n\x13GetPublicKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t"7\n\x14GetPublicKeyResponse\x12\x1f\n\x03key\x18\x01 \x01(\x0b\x32\x12.privyq.v1.KeyInfo"\xa2\x01\n\x0eProtectRequest\x12\x11\n\tplaintext\x18\x01 \x01(\x0c\x12!\n\x06policy\x18\x02 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x13\n\x0bresource_id\x18\x05 \x01(\t\x12"\n\x05\x61\x63tor\x18\x06 \x01(\x0b\x32\x13.privyq.v1.Identity"\x9b\x01\n\x0fProtectResponse\x12\x16\n\x0eprotected_data\x18\x01 \x01(\x0c\x12\x0e\n\x06key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x13\n\x0bpolicy_hash\x18\x04 \x01(\t\x12\x11\n\ttimestamp\x18\x05 \x01(\t\x12%\n\x08\x65vidence\x18\x06 \x01(\x0b\x32\x13.privyq.v1.Evidence"s\n\rAccessRequest\x12\x16\n\x0eprotected_data\x18\x01 \x01(\x0c\x12%\n\x08identity\x18\x02 \x01(\x0b\x32\x13.privyq.v1.Identity\x12#\n\x07\x63ontext\x18\x03 \x01(\x0b\x32\x12.privyq.v1.Context"E\n\x0e\x41\x63\x63\x65ssResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12%\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x13.privyq.v1.Evidence"A\n\x0bSignRequest\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0e\n\x06key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t"K\n\x0cSignResponse\x12\x11\n\tsignature\x18\x01 \x01(\t\x12\x15\n\rpublic_key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t"]\n\rVerifyRequest\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\t\x12\x15\n\rpublic_key_id\x18\x03 \x01(\t\x12\x11\n\talgorithm\x18\x04 \x01(\t"\x1f\n\x0eVerifyResponse\x12\r\n\x05valid\x18\x01 \x01(\x08"\xe4\x02\n\x17GenerateEvidenceRequest\x12"\n\x05\x61\x63tor\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Identity\x12\x13\n\x0bresource_id\x18\x02 \x01(\t\x12\x15\n\rresource_hash\x18\x03 \x01(\t\x12!\n\x06policy\x18\x04 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\toperation\x18\x05 \x01(\t\x12\x36\n\x11policy_evaluation\x18\x06 \x01(\x0b\x32\x1b.privyq.v1.PolicyEvaluation\x12\x16\n\x0esigning_key_id\x18\x07 \x01(\t\x12\x42\n\x08metadata\x18\x08 \x03(\x0b\x32\x30.privyq.v1.GenerateEvidenceRequest.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01"A\n\x18GenerateEvidenceResponse\x12%\n\x08\x65vidence\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Evidence"Y\n\x15VerifyEvidenceRequest\x12%\n\x08\x65vidence\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Evidence\x12\x19\n\x11reevaluate_policy\x18\x02 \x01(\x08"\x82\x01\n\x16VerifyEvidenceResponse\x12\x10\n\x08verified\x18\x01 \x01(\x08\x12\x17\n\x0fsignature_valid\x18\x02 \x01(\x08\x12\x13\n\x0b\x63hain_valid\x18\x03 \x01(\x08\x12\x18\n\x10policy_compliant\x18\x04 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x05 \x01(\t"\x85\x01\n\x15GetEvidenceLogRequest\x12\x13\n\x0bresource_id\x18\x01 \x01(\t\x12\x10\n\x08\x61\x63tor_id\x18\x02 \x01(\t\x12\x12\n\nstart_time\x18\x03 \x01(\t\x12\x10\n\x08\x65nd_time\x18\x04 \x01(\t\x12\x0c\n\x04page\x18\x05 \x01(\x05\x12\x11\n\tpage_size\x18\x06 \x01(\x05"\x86\x01\n\x16GetEvidenceLogResponse\x12$\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x13.privyq.v1.Evidence\x12\r\n\x05total\x18\x02 \x01(\x05\x12\x0c\n\x04page\x18\x03 \x01(\x05\x12\x11\n\tpage_size\x18\x04 \x01(\x05\x12\x16\n\x0e\x63hain_verified\x18\x05 \x01(\x08"\x0f\n\rHealthRequest"\x9d\x01\n\x0eHealthResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x39\n\x08services\x18\x03 \x03(\x0b\x32\'.privyq.v1.HealthResponse.ServicesEntry\x1a/\n\rServicesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32\xfe\x06\n\nPrivyQCore\x12L\n\x0bGenerateKey\x12\x1d.privyq.v1.GenerateKeyRequest\x1a\x1e.privyq.v1.GenerateKeyResponse\x12\x46\n\tRotateKey\x12\x1b.privyq.v1.RotateKeyRequest\x1a\x1c.privyq.v1.RotateKeyResponse\x12\x46\n\tRevokeKey\x12\x1b.privyq.v1.RevokeKeyRequest\x1a\x1c.privyq.v1.RevokeKeyResponse\x12O\n\x0cGetPublicKey\x12\x1e.privyq.v1.GetPublicKeyRequest\x1a\x1f.privyq.v1.GetPublicKeyResponse\x12@\n\x07Protect\x12\x19.privyq.v1.ProtectRequest\x1a\x1a.privyq.v1.ProtectResponse\x12=\n\x06\x41\x63\x63\x65ss\x12\x18.privyq.v1.AccessRequest\x1a\x19.privyq.v1.AccessResponse\x12\x37\n\x04Sign\x12\x16.privyq.v1.SignRequest\x1a\x17.privyq.v1.SignResponse\x12=\n\x06Verify\x12\x18.privyq.v1.VerifyRequest\x1a\x19.privyq.v1.VerifyResponse\x12[\n\x10GenerateEvidence\x12".privyq.v1.GenerateEvidenceRequest\x1a#.privyq.v1.GenerateEvidenceResponse\x12U\n\x0eVerifyEvidence\x12 .privyq.v1.VerifyEvidenceRequest\x1a!.privyq.v1.VerifyEvidenceResponse\x12U\n\x0eGetEvidenceLog\x12 .privyq.v1.GetEvidenceLogRequest\x1a!.privyq.v1.GetEvidenceLogResponse\x12=\n\x06Health\x12\x18.privyq.v1.HealthRequest\x1a\x19.privyq.v1.HealthResponseB,Z*github.com/privyq/privyq/core-go/pkg/pb;pbb\x06proto3'
-)
+
+
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cprivyq.proto\x12\tprivyq.v1\"K\n\tCondition\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08operator\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06negate\x18\x04 \x01(\x08\"\xd2\x01\n\x06Policy\x12\x0f\n\x07version\x18\x01 \x01(\t\x12(\n\nconditions\x18\x02 \x03(\x0b\x32\x14.privyq.v1.Condition\x12\x13\n\x0b\x63ombination\x18\x03 \x01(\t\x12\x14\n\x0c\x63ustom_logic\x18\x04 \x01(\t\x12\x31\n\x08metadata\x18\x05 \x03(\x0b\x32\x1f.privyq.v1.Policy.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xfe\x01\n\x08Identity\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x0c\n\x04role\x18\x02 \x01(\t\x12\x12\n\ndepartment\x18\x03 \x01(\t\x12\x0f\n\x07purpose\x18\x04 \x01(\t\x12\x14\n\x0corganization\x18\x05 \x01(\t\x12\x16\n\x0e\x63lassification\x18\x06 \x01(\t\x12\x14\n\x0cjurisdiction\x18\x07 \x01(\t\x12\x37\n\nattributes\x18\x08 \x03(\x0b\x32#.privyq.v1.Identity.AttributesEntry\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"X\n\x07\x43ontext\x12\x11\n\ttimestamp\x18\x01 \x01(\t\x12\x12\n\nip_address\x18\x02 \x01(\t\x12\x12\n\nsession_id\x18\x03 \x01(\t\x12\x12\n\nuser_agent\x18\x04 \x01(\t\"n\n\x10PolicyEvaluation\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x01(\t\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x38\n\x14\x65valuated_conditions\x18\x03 \x03(\x0b\x32\x1a.privyq.v1.ConditionResult\"Q\n\x0f\x43onditionResult\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08\x65xpected\x18\x02 \x01(\t\x12\x0e\n\x06\x61\x63tual\x18\x03 \x01(\t\x12\x0e\n\x06result\x18\x04 \x01(\x08\"\xe3\x03\n\x08\x45vidence\x12\x13\n\x0b\x65vidence_id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\t\x12\"\n\x05\x61\x63tor\x18\x04 \x01(\x0b\x32\x13.privyq.v1.Identity\x12\x13\n\x0bresource_id\x18\x05 \x01(\t\x12\x15\n\rresource_hash\x18\x06 \x01(\t\x12!\n\x06policy\x18\x07 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\toperation\x18\x08 \x01(\t\x12\x0e\n\x06result\x18\t \x01(\t\x12\x36\n\x11policy_evaluation\x18\n \x01(\x0b\x32\x1b.privyq.v1.PolicyEvaluation\x12\x11\n\tsignature\x18\x0b \x01(\t\x12\x15\n\rpublic_key_id\x18\x0c \x01(\t\x12\x19\n\x11signing_algorithm\x18\r \x01(\t\x12\x13\n\x0bparent_hash\x18\x0e \x01(\t\x12\x10\n\x08position\x18\x0f \x01(\x03\x12\x33\n\x08metadata\x18\x10 \x03(\x0b\x32!.privyq.v1.Evidence.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xc9\x02\n\x07KeyInfo\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x12\n\npublic_key\x18\x05 \x01(\t\x12\x0e\n\x06status\x18\x06 \x01(\t\x12\x12\n\ncreated_at\x18\x07 \x01(\t\x12\x12\n\nexpires_at\x18\x08 \x01(\t\x12\x12\n\nrotated_at\x18\t \x01(\t\x12\x12\n\nrevoked_at\x18\n \x01(\t\x12\x14\n\x0corganization\x18\x0b \x01(\t\x12\r\n\x05owner\x18\x0c \x01(\t\x12\x32\n\x08metadata\x18\r \x03(\x0b\x32 .privyq.v1.KeyInfo.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xca\x01\n\x12GenerateKeyRequest\x12\x11\n\talgorithm\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x14\n\x0corganization\x18\x03 \x01(\t\x12\r\n\x05owner\x18\x04 \x01(\t\x12=\n\x08metadata\x18\x05 \x03(\x0b\x32+.privyq.v1.GenerateKeyRequest.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"6\n\x13GenerateKeyResponse\x12\x1f\n\x03key\x18\x01 \x01(\x0b\x32\x12.privyq.v1.KeyInfo\"8\n\x10RotateKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x14\n\x0cgrace_period\x18\x02 \x01(\t\"e\n\x11RotateKeyResponse\x12\x12\n\nold_key_id\x18\x01 \x01(\t\x12\x12\n\nnew_key_id\x18\x02 \x01(\t\x12\x12\n\nrotated_at\x18\x03 \x01(\t\x12\x14\n\x0cgrace_period\x18\x04 \x01(\t\"2\n\x10RevokeKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x0e\n\x06reason\x18\x02 \x01(\t\"7\n\x11RevokeKeyResponse\x12\x0e\n\x06key_id\x18\x01 \x01(\t\x12\x12\n\nrevoked_at\x18\x02 \x01(\t\"%\n\x13GetPublicKeyRequest\x12\x0e\n\x06key_id\x18\x01 \x01(\t\"7\n\x14GetPublicKeyResponse\x12\x1f\n\x03key\x18\x01 \x01(\x0b\x32\x12.privyq.v1.KeyInfo\"\xa2\x01\n\x0eProtectRequest\x12\x11\n\tplaintext\x18\x01 \x01(\x0c\x12!\n\x06policy\x18\x02 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x13\n\x0bresource_id\x18\x05 \x01(\t\x12\"\n\x05\x61\x63tor\x18\x06 \x01(\x0b\x32\x13.privyq.v1.Identity\"\x9b\x01\n\x0fProtectResponse\x12\x16\n\x0eprotected_data\x18\x01 \x01(\x0c\x12\x0e\n\x06key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\x12\x13\n\x0bpolicy_hash\x18\x04 \x01(\t\x12\x11\n\ttimestamp\x18\x05 \x01(\t\x12%\n\x08\x65vidence\x18\x06 \x01(\x0b\x32\x13.privyq.v1.Evidence\"s\n\rAccessRequest\x12\x16\n\x0eprotected_data\x18\x01 \x01(\x0c\x12%\n\x08identity\x18\x02 \x01(\x0b\x32\x13.privyq.v1.Identity\x12#\n\x07\x63ontext\x18\x03 \x01(\x0b\x32\x12.privyq.v1.Context\"E\n\x0e\x41\x63\x63\x65ssResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12%\n\x08\x65vidence\x18\x02 \x01(\x0b\x32\x13.privyq.v1.Evidence\"A\n\x0bSignRequest\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0e\n\x06key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\"K\n\x0cSignResponse\x12\x11\n\tsignature\x18\x01 \x01(\t\x12\x15\n\rpublic_key_id\x18\x02 \x01(\t\x12\x11\n\talgorithm\x18\x03 \x01(\t\"]\n\rVerifyRequest\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\t\x12\x15\n\rpublic_key_id\x18\x03 \x01(\t\x12\x11\n\talgorithm\x18\x04 \x01(\t\"\x1f\n\x0eVerifyResponse\x12\r\n\x05valid\x18\x01 \x01(\x08\"\xe4\x02\n\x17GenerateEvidenceRequest\x12\"\n\x05\x61\x63tor\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Identity\x12\x13\n\x0bresource_id\x18\x02 \x01(\t\x12\x15\n\rresource_hash\x18\x03 \x01(\t\x12!\n\x06policy\x18\x04 \x01(\x0b\x32\x11.privyq.v1.Policy\x12\x11\n\toperation\x18\x05 \x01(\t\x12\x36\n\x11policy_evaluation\x18\x06 \x01(\x0b\x32\x1b.privyq.v1.PolicyEvaluation\x12\x16\n\x0esigning_key_id\x18\x07 \x01(\t\x12\x42\n\x08metadata\x18\x08 \x03(\x0b\x32\x30.privyq.v1.GenerateEvidenceRequest.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"A\n\x18GenerateEvidenceResponse\x12%\n\x08\x65vidence\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Evidence\"Y\n\x15VerifyEvidenceRequest\x12%\n\x08\x65vidence\x18\x01 \x01(\x0b\x32\x13.privyq.v1.Evidence\x12\x19\n\x11reevaluate_policy\x18\x02 \x01(\x08\"\x82\x01\n\x16VerifyEvidenceResponse\x12\x10\n\x08verified\x18\x01 \x01(\x08\x12\x17\n\x0fsignature_valid\x18\x02 \x01(\x08\x12\x13\n\x0b\x63hain_valid\x18\x03 \x01(\x08\x12\x18\n\x10policy_compliant\x18\x04 \x01(\x08\x12\x0e\n\x06\x64\x65tail\x18\x05 \x01(\t\"\x85\x01\n\x15GetEvidenceLogRequest\x12\x13\n\x0bresource_id\x18\x01 \x01(\t\x12\x10\n\x08\x61\x63tor_id\x18\x02 \x01(\t\x12\x12\n\nstart_time\x18\x03 \x01(\t\x12\x10\n\x08\x65nd_time\x18\x04 \x01(\t\x12\x0c\n\x04page\x18\x05 \x01(\x05\x12\x11\n\tpage_size\x18\x06 \x01(\x05\"\x86\x01\n\x16GetEvidenceLogResponse\x12$\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x13.privyq.v1.Evidence\x12\r\n\x05total\x18\x02 \x01(\x05\x12\x0c\n\x04page\x18\x03 \x01(\x05\x12\x11\n\tpage_size\x18\x04 \x01(\x05\x12\x16\n\x0e\x63hain_verified\x18\x05 \x01(\x08\"\x11\n\x0fListKeysRequest\"4\n\x10ListKeysResponse\x12 \n\x04keys\x18\x01 \x03(\x0b\x32\x12.privyq.v1.KeyInfo\"\x86\x01\n\x15\x45valuatePolicyRequest\x12!\n\x06policy\x18\x01 \x01(\x0b\x32\x11.privyq.v1.Policy\x12%\n\x08identity\x18\x02 \x01(\x0b\x32\x13.privyq.v1.Identity\x12#\n\x07\x63ontext\x18\x03 \x01(\x0b\x32\x12.privyq.v1.Context\"I\n\x16\x45valuatePolicyResponse\x12/\n\nevaluation\x18\x01 \x01(\x0b\x32\x1b.privyq.v1.PolicyEvaluation\"\x0f\n\rHealthRequest\"\x9d\x01\n\x0eHealthResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x39\n\x08services\x18\x03 \x03(\x0b\x32\'.privyq.v1.HealthResponse.ServicesEntry\x1a/\n\rServicesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x32\x9a\x08\n\nPrivyQCore\x12L\n\x0bGenerateKey\x12\x1d.privyq.v1.GenerateKeyRequest\x1a\x1e.privyq.v1.GenerateKeyResponse\x12\x46\n\tRotateKey\x12\x1b.privyq.v1.RotateKeyRequest\x1a\x1c.privyq.v1.RotateKeyResponse\x12\x46\n\tRevokeKey\x12\x1b.privyq.v1.RevokeKeyRequest\x1a\x1c.privyq.v1.RevokeKeyResponse\x12O\n\x0cGetPublicKey\x12\x1e.privyq.v1.GetPublicKeyRequest\x1a\x1f.privyq.v1.GetPublicKeyResponse\x12\x43\n\x08ListKeys\x12\x1a.privyq.v1.ListKeysRequest\x1a\x1b.privyq.v1.ListKeysResponse\x12U\n\x0e\x45valuatePolicy\x12 .privyq.v1.EvaluatePolicyRequest\x1a!.privyq.v1.EvaluatePolicyResponse\x12@\n\x07Protect\x12\x19.privyq.v1.ProtectRequest\x1a\x1a.privyq.v1.ProtectResponse\x12=\n\x06\x41\x63\x63\x65ss\x12\x18.privyq.v1.AccessRequest\x1a\x19.privyq.v1.AccessResponse\x12\x37\n\x04Sign\x12\x16.privyq.v1.SignRequest\x1a\x17.privyq.v1.SignResponse\x12=\n\x06Verify\x12\x18.privyq.v1.VerifyRequest\x1a\x19.privyq.v1.VerifyResponse\x12[\n\x10GenerateEvidence\x12\".privyq.v1.GenerateEvidenceRequest\x1a#.privyq.v1.GenerateEvidenceResponse\x12U\n\x0eVerifyEvidence\x12 .privyq.v1.VerifyEvidenceRequest\x1a!.privyq.v1.VerifyEvidenceResponse\x12U\n\x0eGetEvidenceLog\x12 .privyq.v1.GetEvidenceLogRequest\x1a!.privyq.v1.GetEvidenceLogResponse\x12=\n\x06Health\x12\x18.privyq.v1.HealthRequest\x1a\x19.privyq.v1.HealthResponseB,Z*github.com/privyq/privyq/core-go/pkg/pb;pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "privyq_pb2", _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'privyq_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-    _globals["DESCRIPTOR"]._loaded_options = None
-    _globals["DESCRIPTOR"]._serialized_options = b"Z*github.com/privyq/privyq/core-go/pkg/pb;pb"
-    _globals["_POLICY_METADATAENTRY"]._loaded_options = None
-    _globals["_POLICY_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_IDENTITY_ATTRIBUTESENTRY"]._loaded_options = None
-    _globals["_IDENTITY_ATTRIBUTESENTRY"]._serialized_options = b"8\001"
-    _globals["_EVIDENCE_METADATAENTRY"]._loaded_options = None
-    _globals["_EVIDENCE_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_KEYINFO_METADATAENTRY"]._loaded_options = None
-    _globals["_KEYINFO_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_GENERATEKEYREQUEST_METADATAENTRY"]._loaded_options = None
-    _globals["_GENERATEKEYREQUEST_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_GENERATEEVIDENCEREQUEST_METADATAENTRY"]._loaded_options = None
-    _globals["_GENERATEEVIDENCEREQUEST_METADATAENTRY"]._serialized_options = b"8\001"
-    _globals["_HEALTHRESPONSE_SERVICESENTRY"]._loaded_options = None
-    _globals["_HEALTHRESPONSE_SERVICESENTRY"]._serialized_options = b"8\001"
-    _globals["_CONDITION"]._serialized_start = 27
-    _globals["_CONDITION"]._serialized_end = 102
-    _globals["_POLICY"]._serialized_start = 105
-    _globals["_POLICY"]._serialized_end = 315
-    _globals["_POLICY_METADATAENTRY"]._serialized_start = 268
-    _globals["_POLICY_METADATAENTRY"]._serialized_end = 315
-    _globals["_IDENTITY"]._serialized_start = 318
-    _globals["_IDENTITY"]._serialized_end = 572
-    _globals["_IDENTITY_ATTRIBUTESENTRY"]._serialized_start = 523
-    _globals["_IDENTITY_ATTRIBUTESENTRY"]._serialized_end = 572
-    _globals["_CONTEXT"]._serialized_start = 574
-    _globals["_CONTEXT"]._serialized_end = 662
-    _globals["_POLICYEVALUATION"]._serialized_start = 664
-    _globals["_POLICYEVALUATION"]._serialized_end = 774
-    _globals["_CONDITIONRESULT"]._serialized_start = 776
-    _globals["_CONDITIONRESULT"]._serialized_end = 857
-    _globals["_EVIDENCE"]._serialized_start = 860
-    _globals["_EVIDENCE"]._serialized_end = 1343
-    _globals["_EVIDENCE_METADATAENTRY"]._serialized_start = 268
-    _globals["_EVIDENCE_METADATAENTRY"]._serialized_end = 315
-    _globals["_KEYINFO"]._serialized_start = 1346
-    _globals["_KEYINFO"]._serialized_end = 1675
-    _globals["_KEYINFO_METADATAENTRY"]._serialized_start = 268
-    _globals["_KEYINFO_METADATAENTRY"]._serialized_end = 315
-    _globals["_GENERATEKEYREQUEST"]._serialized_start = 1678
-    _globals["_GENERATEKEYREQUEST"]._serialized_end = 1880
-    _globals["_GENERATEKEYREQUEST_METADATAENTRY"]._serialized_start = 268
-    _globals["_GENERATEKEYREQUEST_METADATAENTRY"]._serialized_end = 315
-    _globals["_GENERATEKEYRESPONSE"]._serialized_start = 1882
-    _globals["_GENERATEKEYRESPONSE"]._serialized_end = 1936
-    _globals["_ROTATEKEYREQUEST"]._serialized_start = 1938
-    _globals["_ROTATEKEYREQUEST"]._serialized_end = 1994
-    _globals["_ROTATEKEYRESPONSE"]._serialized_start = 1996
-    _globals["_ROTATEKEYRESPONSE"]._serialized_end = 2097
-    _globals["_REVOKEKEYREQUEST"]._serialized_start = 2099
-    _globals["_REVOKEKEYREQUEST"]._serialized_end = 2149
-    _globals["_REVOKEKEYRESPONSE"]._serialized_start = 2151
-    _globals["_REVOKEKEYRESPONSE"]._serialized_end = 2206
-    _globals["_GETPUBLICKEYREQUEST"]._serialized_start = 2208
-    _globals["_GETPUBLICKEYREQUEST"]._serialized_end = 2245
-    _globals["_GETPUBLICKEYRESPONSE"]._serialized_start = 2247
-    _globals["_GETPUBLICKEYRESPONSE"]._serialized_end = 2302
-    _globals["_PROTECTREQUEST"]._serialized_start = 2305
-    _globals["_PROTECTREQUEST"]._serialized_end = 2467
-    _globals["_PROTECTRESPONSE"]._serialized_start = 2470
-    _globals["_PROTECTRESPONSE"]._serialized_end = 2625
-    _globals["_ACCESSREQUEST"]._serialized_start = 2627
-    _globals["_ACCESSREQUEST"]._serialized_end = 2742
-    _globals["_ACCESSRESPONSE"]._serialized_start = 2744
-    _globals["_ACCESSRESPONSE"]._serialized_end = 2813
-    _globals["_SIGNREQUEST"]._serialized_start = 2815
-    _globals["_SIGNREQUEST"]._serialized_end = 2880
-    _globals["_SIGNRESPONSE"]._serialized_start = 2882
-    _globals["_SIGNRESPONSE"]._serialized_end = 2957
-    _globals["_VERIFYREQUEST"]._serialized_start = 2959
-    _globals["_VERIFYREQUEST"]._serialized_end = 3052
-    _globals["_VERIFYRESPONSE"]._serialized_start = 3054
-    _globals["_VERIFYRESPONSE"]._serialized_end = 3085
-    _globals["_GENERATEEVIDENCEREQUEST"]._serialized_start = 3088
-    _globals["_GENERATEEVIDENCEREQUEST"]._serialized_end = 3444
-    _globals["_GENERATEEVIDENCEREQUEST_METADATAENTRY"]._serialized_start = 268
-    _globals["_GENERATEEVIDENCEREQUEST_METADATAENTRY"]._serialized_end = 315
-    _globals["_GENERATEEVIDENCERESPONSE"]._serialized_start = 3446
-    _globals["_GENERATEEVIDENCERESPONSE"]._serialized_end = 3511
-    _globals["_VERIFYEVIDENCEREQUEST"]._serialized_start = 3513
-    _globals["_VERIFYEVIDENCEREQUEST"]._serialized_end = 3602
-    _globals["_VERIFYEVIDENCERESPONSE"]._serialized_start = 3605
-    _globals["_VERIFYEVIDENCERESPONSE"]._serialized_end = 3735
-    _globals["_GETEVIDENCELOGREQUEST"]._serialized_start = 3738
-    _globals["_GETEVIDENCELOGREQUEST"]._serialized_end = 3871
-    _globals["_GETEVIDENCELOGRESPONSE"]._serialized_start = 3874
-    _globals["_GETEVIDENCELOGRESPONSE"]._serialized_end = 4008
-    _globals["_HEALTHREQUEST"]._serialized_start = 4010
-    _globals["_HEALTHREQUEST"]._serialized_end = 4025
-    _globals["_HEALTHRESPONSE"]._serialized_start = 4028
-    _globals["_HEALTHRESPONSE"]._serialized_end = 4185
-    _globals["_HEALTHRESPONSE_SERVICESENTRY"]._serialized_start = 4138
-    _globals["_HEALTHRESPONSE_SERVICESENTRY"]._serialized_end = 4185
-    _globals["_PRIVYQCORE"]._serialized_start = 4188
-    _globals["_PRIVYQCORE"]._serialized_end = 5082
+  _globals['DESCRIPTOR']._loaded_options = None
+  _globals['DESCRIPTOR']._serialized_options = b'Z*github.com/privyq/privyq/core-go/pkg/pb;pb'
+  _globals['_POLICY_METADATAENTRY']._loaded_options = None
+  _globals['_POLICY_METADATAENTRY']._serialized_options = b'8\001'
+  _globals['_IDENTITY_ATTRIBUTESENTRY']._loaded_options = None
+  _globals['_IDENTITY_ATTRIBUTESENTRY']._serialized_options = b'8\001'
+  _globals['_EVIDENCE_METADATAENTRY']._loaded_options = None
+  _globals['_EVIDENCE_METADATAENTRY']._serialized_options = b'8\001'
+  _globals['_KEYINFO_METADATAENTRY']._loaded_options = None
+  _globals['_KEYINFO_METADATAENTRY']._serialized_options = b'8\001'
+  _globals['_GENERATEKEYREQUEST_METADATAENTRY']._loaded_options = None
+  _globals['_GENERATEKEYREQUEST_METADATAENTRY']._serialized_options = b'8\001'
+  _globals['_GENERATEEVIDENCEREQUEST_METADATAENTRY']._loaded_options = None
+  _globals['_GENERATEEVIDENCEREQUEST_METADATAENTRY']._serialized_options = b'8\001'
+  _globals['_HEALTHRESPONSE_SERVICESENTRY']._loaded_options = None
+  _globals['_HEALTHRESPONSE_SERVICESENTRY']._serialized_options = b'8\001'
+  _globals['_CONDITION']._serialized_start=27
+  _globals['_CONDITION']._serialized_end=102
+  _globals['_POLICY']._serialized_start=105
+  _globals['_POLICY']._serialized_end=315
+  _globals['_POLICY_METADATAENTRY']._serialized_start=268
+  _globals['_POLICY_METADATAENTRY']._serialized_end=315
+  _globals['_IDENTITY']._serialized_start=318
+  _globals['_IDENTITY']._serialized_end=572
+  _globals['_IDENTITY_ATTRIBUTESENTRY']._serialized_start=523
+  _globals['_IDENTITY_ATTRIBUTESENTRY']._serialized_end=572
+  _globals['_CONTEXT']._serialized_start=574
+  _globals['_CONTEXT']._serialized_end=662
+  _globals['_POLICYEVALUATION']._serialized_start=664
+  _globals['_POLICYEVALUATION']._serialized_end=774
+  _globals['_CONDITIONRESULT']._serialized_start=776
+  _globals['_CONDITIONRESULT']._serialized_end=857
+  _globals['_EVIDENCE']._serialized_start=860
+  _globals['_EVIDENCE']._serialized_end=1343
+  _globals['_EVIDENCE_METADATAENTRY']._serialized_start=268
+  _globals['_EVIDENCE_METADATAENTRY']._serialized_end=315
+  _globals['_KEYINFO']._serialized_start=1346
+  _globals['_KEYINFO']._serialized_end=1675
+  _globals['_KEYINFO_METADATAENTRY']._serialized_start=268
+  _globals['_KEYINFO_METADATAENTRY']._serialized_end=315
+  _globals['_GENERATEKEYREQUEST']._serialized_start=1678
+  _globals['_GENERATEKEYREQUEST']._serialized_end=1880
+  _globals['_GENERATEKEYREQUEST_METADATAENTRY']._serialized_start=268
+  _globals['_GENERATEKEYREQUEST_METADATAENTRY']._serialized_end=315
+  _globals['_GENERATEKEYRESPONSE']._serialized_start=1882
+  _globals['_GENERATEKEYRESPONSE']._serialized_end=1936
+  _globals['_ROTATEKEYREQUEST']._serialized_start=1938
+  _globals['_ROTATEKEYREQUEST']._serialized_end=1994
+  _globals['_ROTATEKEYRESPONSE']._serialized_start=1996
+  _globals['_ROTATEKEYRESPONSE']._serialized_end=2097
+  _globals['_REVOKEKEYREQUEST']._serialized_start=2099
+  _globals['_REVOKEKEYREQUEST']._serialized_end=2149
+  _globals['_REVOKEKEYRESPONSE']._serialized_start=2151
+  _globals['_REVOKEKEYRESPONSE']._serialized_end=2206
+  _globals['_GETPUBLICKEYREQUEST']._serialized_start=2208
+  _globals['_GETPUBLICKEYREQUEST']._serialized_end=2245
+  _globals['_GETPUBLICKEYRESPONSE']._serialized_start=2247
+  _globals['_GETPUBLICKEYRESPONSE']._serialized_end=2302
+  _globals['_PROTECTREQUEST']._serialized_start=2305
+  _globals['_PROTECTREQUEST']._serialized_end=2467
+  _globals['_PROTECTRESPONSE']._serialized_start=2470
+  _globals['_PROTECTRESPONSE']._serialized_end=2625
+  _globals['_ACCESSREQUEST']._serialized_start=2627
+  _globals['_ACCESSREQUEST']._serialized_end=2742
+  _globals['_ACCESSRESPONSE']._serialized_start=2744
+  _globals['_ACCESSRESPONSE']._serialized_end=2813
+  _globals['_SIGNREQUEST']._serialized_start=2815
+  _globals['_SIGNREQUEST']._serialized_end=2880
+  _globals['_SIGNRESPONSE']._serialized_start=2882
+  _globals['_SIGNRESPONSE']._serialized_end=2957
+  _globals['_VERIFYREQUEST']._serialized_start=2959
+  _globals['_VERIFYREQUEST']._serialized_end=3052
+  _globals['_VERIFYRESPONSE']._serialized_start=3054
+  _globals['_VERIFYRESPONSE']._serialized_end=3085
+  _globals['_GENERATEEVIDENCEREQUEST']._serialized_start=3088
+  _globals['_GENERATEEVIDENCEREQUEST']._serialized_end=3444
+  _globals['_GENERATEEVIDENCEREQUEST_METADATAENTRY']._serialized_start=268
+  _globals['_GENERATEEVIDENCEREQUEST_METADATAENTRY']._serialized_end=315
+  _globals['_GENERATEEVIDENCERESPONSE']._serialized_start=3446
+  _globals['_GENERATEEVIDENCERESPONSE']._serialized_end=3511
+  _globals['_VERIFYEVIDENCEREQUEST']._serialized_start=3513
+  _globals['_VERIFYEVIDENCEREQUEST']._serialized_end=3602
+  _globals['_VERIFYEVIDENCERESPONSE']._serialized_start=3605
+  _globals['_VERIFYEVIDENCERESPONSE']._serialized_end=3735
+  _globals['_GETEVIDENCELOGREQUEST']._serialized_start=3738
+  _globals['_GETEVIDENCELOGREQUEST']._serialized_end=3871
+  _globals['_GETEVIDENCELOGRESPONSE']._serialized_start=3874
+  _globals['_GETEVIDENCELOGRESPONSE']._serialized_end=4008
+  _globals['_LISTKEYSREQUEST']._serialized_start=4010
+  _globals['_LISTKEYSREQUEST']._serialized_end=4027
+  _globals['_LISTKEYSRESPONSE']._serialized_start=4029
+  _globals['_LISTKEYSRESPONSE']._serialized_end=4081
+  _globals['_EVALUATEPOLICYREQUEST']._serialized_start=4084
+  _globals['_EVALUATEPOLICYREQUEST']._serialized_end=4218
+  _globals['_EVALUATEPOLICYRESPONSE']._serialized_start=4220
+  _globals['_EVALUATEPOLICYRESPONSE']._serialized_end=4293
+  _globals['_HEALTHREQUEST']._serialized_start=4295
+  _globals['_HEALTHREQUEST']._serialized_end=4310
+  _globals['_HEALTHRESPONSE']._serialized_start=4313
+  _globals['_HEALTHRESPONSE']._serialized_end=4470
+  _globals['_HEALTHRESPONSE_SERVICESENTRY']._serialized_start=4423
+  _globals['_HEALTHRESPONSE_SERVICESENTRY']._serialized_end=4470
+  _globals['_PRIVYQCORE']._serialized_start=4473
+  _globals['_PRIVYQCORE']._serialized_end=5523
 # @@protoc_insertion_point(module_scope)

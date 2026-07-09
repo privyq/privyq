@@ -30,7 +30,7 @@ export function CoreStatus() {
     status === "online"
       ? "Core online"
       : status === "offline"
-        ? "Core offline — demo data"
+        ? "Core offline"
         : "Checking core…";
   const dot =
     status === "online"

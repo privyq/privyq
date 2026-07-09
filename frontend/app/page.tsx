@@ -1,176 +1,89 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-} from "recharts";
-import {
-  FileUp,
-  Files,
-  KeyRound,
-  ShieldCheck,
-  ArrowUpRight,
-} from "lucide-react";
-import { DEMO_EVIDENCE, DEMO_KEYS, DEMO_RECORDS } from "@/lib/demo-data";
+import { Lock, ShieldCheck, KeyRound, FlaskConical, ArrowRight } from "lucide-react";
 import { shortDateTime } from "@/lib/utils";
+import { useRecords } from "@/components/providers/records-provider";
 import { useIdentity } from "@/components/providers/identity-provider";
+import { RecordForm } from "@/components/record-form";
 import { PageHeading } from "@/components/page-heading";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-const activeKeys = DEMO_KEYS.filter((k) => k.status === "active").length;
-const grantedCount = DEMO_EVIDENCE.filter((e) => e.result === "granted").length;
-const deniedCount = DEMO_EVIDENCE.filter((e) => e.result === "denied").length;
-
-const chartData = [
-  { name: "Granted", value: grantedCount, fill: "var(--mint)" },
-  { name: "Denied", value: deniedCount, fill: "var(--red)" },
-];
-
-const STATS = [
-  { label: "Protected records", value: DEMO_RECORDS.length, icon: Files, href: "/records" },
-  { label: "Active keys", value: activeKeys, icon: KeyRound, href: "/keys" },
-  { label: "Evidence entries", value: DEMO_EVIDENCE.length, icon: ShieldCheck, href: "/audit" },
-];
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
+  const { records, hydrated } = useRecords();
   const { persona } = useIdentity();
+  const recent = records.slice(0, 5);
 
   return (
     <div>
       <PageHeading
-        eyebrow="Secure Medical Records"
-        title={
-          <>
-            Welcome, <span className="ink-hl">{persona.name}</span>
-          </>
-        }
-        description={`Acting as ${persona.identity.role} · ${persona.identity.department} · ${persona.identity.organization}. Switch personas from the header to see policy decisions change.`}
-      >
-        <Link
-          href="/upload"
-          className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-bold text-white shadow-ink transition-transform hover:-translate-y-0.5"
-        >
-          <FileUp className="h-4 w-4" />
-          Upload record
-        </Link>
-      </PageHeading>
+        eyebrow={`Signed in as ${persona.name}`}
+        title="Secure a patient record"
+        description="Protect a record below — it's encrypted with post-quantum cryptography and its access policy is sealed inside the ciphertext. Then switch personas (top right) and try to access it from the Records page."
+      />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {STATS.map((s) => (
-          <Link key={s.label} href={s.href}>
-            <Card className="transition-transform hover:-translate-y-1 hover:shadow-md">
-              <CardContent className="flex items-center gap-4 p-5">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-tint text-ink">
-                  <s.icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="font-display text-2xl font-extrabold tracking-tight">
-                    {s.value}
-                  </div>
-                  <div className="text-sm text-muted">{s.label}</div>
-                </div>
-                <ArrowUpRight className="ml-auto h-4 w-4 text-muted" />
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Recent access events</CardTitle>
-            <Link
-              href="/audit"
-              className="text-sm font-semibold text-blue hover:underline"
-            >
-              View audit log
-            </Link>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            {DEMO_EVIDENCE.slice()
-              .reverse()
-              .slice(0, 6)
-              .map((e) => (
-                <div
-                  key={e.evidence_id}
-                  className="flex items-center gap-3 rounded-[10px] border border-line bg-tint/40 px-3 py-2.5"
-                >
-                  <Badge
-                    variant={e.result === "granted" ? "granted" : "denied"}
-                    size="sm"
-                  >
-                    {e.result}
-                  </Badge>
-                  <span className="text-sm font-medium">
-                    {e.resource.resource_id}
-                  </span>
-                  <span className="text-xs text-muted">
-                    {e.actor.user_id} · {e.operation}
-                  </span>
-                  <span className="ml-auto font-mono text-[.66rem] text-muted">
-                    {shortDateTime(e.timestamp)}
-                  </span>
-                </div>
-              ))}
-          </CardContent>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" /> New protected record</CardTitle></CardHeader>
+          <CardContent className="py-5"><RecordForm /></CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Access outcomes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[180px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis
-                    dataKey="name"
-                    tickLine={false}
-                    axisLine={false}
-                    fontSize={12}
-                  />
-                  <YAxis
-                    allowDecimals={false}
-                    tickLine={false}
-                    axisLine={false}
-                    fontSize={12}
-                    width={24}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "rgba(0,0,0,.04)" }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid var(--line)",
-                      fontSize: 12,
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                    {chartData.map((d) => (
-                      <Cell key={d.name} fill={d.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 rounded-[10px] border border-mint/40 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-[#0a9c6b]">
-              All {DEMO_EVIDENCE.length} entries verified — no tampering detected
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Recent records
+                <Link href="/records" className="text-xs font-semibold text-blue hover:underline">view all</Link>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!hydrated ? (
+                <p className="text-muted">Loading…</p>
+              ) : recent.length === 0 ? (
+                <p className="text-sm text-muted">No records yet. Protect one on the left to get started.</p>
+              ) : (
+                <ul className="flex flex-col divide-y divide-line">
+                  {recent.map((r) => (
+                    <li key={r.id}>
+                      <Link href={`/record/${r.id}`} className="flex items-center gap-3 py-2.5 hover:opacity-80">
+                        <Lock className="h-4 w-4 text-blue" />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{r.patientName}</p>
+                          <p className="truncate text-xs text-muted">{r.summary}</p>
+                        </div>
+                        <Badge variant="muted" className="ml-auto">{r.classification}</Badge>
+                        <ArrowRight className="h-4 w-4 text-muted" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-3 gap-3">
+            <QuickLink href="/audit" icon={<ShieldCheck className="h-5 w-5" />} label="Audit" />
+            <QuickLink href="/keys" icon={<KeyRound className="h-5 w-5" />} label="Keys" />
+            <QuickLink href="/playground" icon={<FlaskConical className="h-5 w-5" />} label="Playground" />
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function QuickLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link href={href}>
+      <Card className="h-full transition-shadow hover:shadow-md">
+        <CardContent className="flex flex-col items-center gap-1.5 py-4 text-center">
+          <span className="text-blue">{icon}</span>
+          <span className="text-sm font-semibold">{label}</span>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

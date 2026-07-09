@@ -89,6 +89,36 @@ class KeyResponse(BaseModel):
     created_at: str
 
 
+class KeyInfoModel(BaseModel):
+    key_id: str = ""
+    algorithm: str = ""
+    type: str = ""
+    public_key: str = ""
+    status: str = ""
+    created_at: str = ""
+    expires_at: str = ""
+    rotated_at: str = ""
+    revoked_at: str = ""
+    organization: str = ""
+    owner: str = ""
+
+
+class KeyListResponse(BaseModel):
+    keys: list[KeyInfoModel]
+
+
+class PolicyEvaluateRequest(BaseModel):
+    policy: dict[str, Any]
+    identity: dict[str, Any]
+    context: dict[str, Any] | None = None
+
+
+class PolicyEvaluationResponse(BaseModel):
+    decision: str = "denied"
+    reason: str = ""
+    evaluated_conditions: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class HealthResponse(BaseModel):
     status: str
     services: dict[str, str]
