@@ -27,7 +27,11 @@ frontend/out/
 .env.local
 *.pem
 *.key
-data/
+
+# Runtime data (core key store / audit), not example fixtures
+/data/
+core-go/data/
+*.privyq
 
 # Editors / OS
 .DS_Store

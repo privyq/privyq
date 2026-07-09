@@ -1,0 +1,36 @@
+{
+  "dataset": "derma-lesions-v4",
+  "description": "De-identified dermatology images with expert lesion labels.",
+  "synthetic_demo": true,
+  "owner": {
+    "organization": "AcmeAI",
+    "steward": "data_steward",
+    "contact": "governance@acme.example"
+  },
+  "consent": {
+    "scope": "research",
+    "notes": "Collected under IRB-2025-118. Consent is limited to non-commercial research.",
+    "prohibited_uses": ["marketing", "advertising", "resale", "model-as-a-service"]
+  },
+  "statistics": {
+    "num_samples": 84120,
+    "num_classes": 9,
+    "modalities": ["dermoscopy", "clinical-photo"],
+    "pii_removed": true,
+    "split": { "train": 67296, "val": 8412, "test": 8412 }
+  },
+  "schema": [
+    { "field": "image_id", "type": "string" },
+    { "field": "label", "type": "categorical", "classes": 9 },
+    { "field": "acquisition_site", "type": "string" },
+    { "field": "captured_at", "type": "datetime" }
+  ],
+  "integrity": {
+    "sha256_manifest": "b1946ac92492d2347c6235b4d2611184",
+    "record_count_verified": true
+  },
+  "governance": {
+    "policy": "purpose=research AND organization=AcmeAI AND role in {ml-engineer,data-scientist}",
+    "retention": "delete derived artifacts 24 months after project close"
+  }
+}

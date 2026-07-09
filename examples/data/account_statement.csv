@@ -1,0 +1,16 @@
+date,description,category,amount_eur,balance_eur
+2026-07-01,Opening balance,,,15042.11
+2026-07-02,Salary — Meridian GmbH,income,3200.00,18242.11
+2026-07-03,Rent — Hausverwaltung Berlin,housing,-1450.00,16792.11
+2026-07-05,SEPA transfer to savings,transfer,-800.00,15992.11
+2026-07-06,Grocery — Rewe,groceries,-112.47,15879.64
+2026-07-08,Electricity — Vattenfall,utilities,-96.30,15783.34
+2026-07-09,Card — Deutsche Bahn,transport,-59.90,15723.44
+2026-07-11,Refund — Zalando,refund,42.99,15766.43
+2026-07-14,Restaurant — Trattoria Roma,dining,-78.20,15688.23
+2026-07-15,Pharmacy — Apotheke am Markt,health,-23.15,15665.08
+2026-07-18,Transfer from A. Doe,income,150.00,15815.08
+2026-07-21,Insurance — Allianz,insurance,-64.00,15751.08
+2026-07-24,Grocery — Edeka,groceries,-88.63,15662.45
+2026-07-28,Interest,income,4.10,15666.55
+2026-07-31,Closing balance,,,15666.55

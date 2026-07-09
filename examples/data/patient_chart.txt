@@ -1,0 +1,53 @@
+SUNRISE GENERAL HOSPITAL — CARDIOLOGY
+Confidential Clinical Record  (SYNTHETIC DATA — for demonstration only)
+================================================================================
+Patient:        John A. Doe
+MRN:            SGH-0042118
+DOB:            1968-03-14 (58y)
+Sex:            Male
+Encounter:      2026-07-08  ·  Attending: Dr. Amara Okafor, MD (Cardiology)
+
+--------------------------------------------------------------------------------
+SUBJECTIVE
+--------------------------------------------------------------------------------
+58-year-old male, established patient, presents for scheduled follow-up of
+hypertension and exertional dyspnea. Reports improved exercise tolerance since
+initiation of beta-blocker therapy 6 weeks ago. Denies chest pain, palpitations,
+syncope, orthopnea, or lower-extremity edema. Adherent to medications. Continues
+low-sodium diet; walks 30 minutes most days.
+
+--------------------------------------------------------------------------------
+OBJECTIVE
+--------------------------------------------------------------------------------
+Vitals:   BP 132/84 mmHg   HR 68 bpm (regular)   RR 14   SpO2 98% RA   BMI 27.9
+Cardiac:  Normal S1/S2, no murmurs, rubs, or gallops. JVP not elevated.
+Lungs:    Clear to auscultation bilaterally.
+Extrem:   No peripheral edema; distal pulses 2+ and symmetric.
+
+Echocardiogram (2026-07-01):
+    - Mild concentric left ventricular hypertrophy.
+    - LVEF 58% (preserved). No regional wall-motion abnormality.
+    - Trace mitral regurgitation. Normal right heart.
+
+Labs (2026-07-02):
+    - Lipids: LDL 96 mg/dL, HDL 47 mg/dL, TG 150 mg/dL
+    - BMP within normal limits; eGFR 88; K+ 4.2
+    - HbA1c 5.6%
+
+--------------------------------------------------------------------------------
+ASSESSMENT
+--------------------------------------------------------------------------------
+1. Essential hypertension — improving control on current regimen.
+2. Mild LVH, likely hypertensive; preserved systolic function.
+3. Borderline dyslipidemia — reinforce lifestyle, continue statin.
+
+--------------------------------------------------------------------------------
+PLAN
+--------------------------------------------------------------------------------
+- Continue metoprolol succinate 50 mg daily and lisinopril 10 mg daily.
+- Continue atorvastatin 20 mg nightly; recheck lipids in 12 weeks.
+- Home BP log; target < 130/80.
+- Follow-up in cardiology clinic in 3 months; repeat echo in 12 months.
+- Return precautions reviewed (chest pain, syncope, dyspnea at rest).
+
+Electronically signed: Dr. Amara Okafor, MD — 2026-07-08 16:42
