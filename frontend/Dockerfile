@@ -5,8 +5,16 @@
 # ── deps: install production + dev deps for the build ──
 FROM node:22-alpine AS deps
 WORKDIR /app
+# Don't let the @playwright/test dep try to pull browsers during install.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json* ./
-RUN npm ci
+# Make the install resilient to flaky networks (retry on ECONNRESET/timeout).
+RUN npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 180000 \
+  && npm config set fetch-timeout 600000
+# A cache mount lets retried builds resume from already-downloaded packages.
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
 # ── builder: compile the Next.js app ──
 FROM node:22-alpine AS builder
