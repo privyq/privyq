@@ -5,9 +5,10 @@ import { RecordsProvider } from "@/components/providers/records-provider";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "PrivyQ — Secure Medical Records Demo",
+  title: "PrivyQ — Lock it. Rule it. Prove it.",
   description:
-    "Policy-governed, post-quantum-secure medical records. Lock it. Rule it. Prove it.",
+    "Post-quantum encryption that carries its own access rules and hands you " +
+    "tamper-proof receipts for every access. Open source, three lines of code.",
 };
 
 export default function RootLayout({

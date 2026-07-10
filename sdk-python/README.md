@@ -1,7 +1,7 @@
 # PrivyQ Python SDK (`privyq`)
 
 The developer-facing interface to PrivyQ. It hides all cryptographic and gRPC
-detail behind three verbs — `protect()`, `access()`, `verify()` — so you think
+detail behind three verbs, `protect()`, `access()`, `verify()`, so you think
 in terms of *business intent*, not primitives.
 
 ```python
@@ -16,7 +16,7 @@ protected = privyq.protect(
     actor={"user_id": "dr_smith", "role": "doctor", "department": "cardiology"},
 )
 
-# Open it — only if the policy is satisfied.
+# Open it, only if the policy is satisfied.
 result = privyq.access(protected, identity={"role": "doctor", "department": "cardiology", "purpose": "treatment"})
 print(result.text)          # -> "Patient: John Doe. ..."
 print(result.receipt.id)    # a signed, verifiable access receipt
@@ -26,7 +26,7 @@ check = privyq.verify(result.receipt)
 assert check.ok and check.signature_valid and check.chain_valid
 ```
 
-Denied access raises `PolicyViolationError` — and the attempt is still recorded
+Denied access raises `PolicyViolationError`, and the attempt is still recorded
 as tamper-evident evidence:
 
 ```python
@@ -48,7 +48,7 @@ core with `configure(core_address=...)` or the `PRIVYQ_CORE_ADDRESS` env var.
 
 ## Policy shorthand
 
-Policies accept two forms. The **shorthand** maps each key to a condition — lists
+Policies accept two forms. The **shorthand** maps each key to a condition, lists
 become `in`, `expiry` becomes a `before` with duration expansion (`"24h"` → an
 absolute timestamp):
 
