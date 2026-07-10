@@ -11,7 +11,7 @@ export const GITHUB_URL = "https://github.com/privyq/privyq";
 export const PYPI_URL = "https://pypi.org/project/privyq/";
 
 const APP_NAV = [
-  { href: "/app", label: "Dashboard" },
+  { href: "/demo", label: "Dashboard" },
   { href: "/records", label: "Records" },
   { href: "/audit", label: "Audit" },
   { href: "/keys", label: "Keys" },
@@ -35,7 +35,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-paper/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-wrap flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3">
-        <Link href={marketing ? "/" : "/app"} className="flex items-center gap-2.5" aria-label="PrivyQ home">
+        <Link href={marketing ? "/" : "/demo"} className="flex items-center gap-2.5" aria-label="PrivyQ home">
           <BrandMark />
           <span className="font-display text-[1.05rem] font-extrabold tracking-tight">PrivyQ</span>
           {!marketing && (
@@ -51,7 +51,7 @@ export function SiteHeader() {
               <a href={PYPI_URL} target="_blank" rel="noopener" className={navClass(false)}>PyPI</a>
             </nav>
             <Link
-              href="/app"
+              href="/demo"
               className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
             >
               Launch demo <ArrowRight className="h-4 w-4" />
@@ -87,7 +87,7 @@ export function SiteHeader() {
 }
 
 function isActive(pathname: string, href: string): boolean {
-  return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+  return href === "/demo" ? pathname === "/demo" : pathname.startsWith(href);
 }
 
 function navClass(active: boolean): string {

@@ -744,7 +744,7 @@ export default function DocsPage() {
                 ))}
               </div>
               <Callout tone="mint" icon={ShieldCheck}>
-                Ready to see it in action? <Link href="/app">Launch the demo</Link> or read the source on{" "}
+                Ready to see it in action? <Link href="/demo">Launch the demo</Link> or read the source on{" "}
                 <a href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a>.
               </Callout>
             </div>

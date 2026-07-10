@@ -68,7 +68,7 @@ function Hero() {
           forged or quietly erased. Quantum-safe, in three lines of code.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link href="/app" className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-base font-bold text-white shadow-ink transition-transform hover:-translate-y-0.5">
+          <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-base font-bold text-white shadow-ink transition-transform hover:-translate-y-0.5">
             Try the live demo <ArrowRight className="h-5 w-5" />
           </Link>
           <a href={GITHUB_URL} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 rounded-full border-[1.5px] border-line bg-white px-6 py-3.5 text-base font-bold text-ink transition-colors hover:border-ink">
@@ -179,7 +179,7 @@ function AccessDemo() {
           )}
         </CardContent>
       </Card>
-      <p className="mt-3 text-center text-xs text-muted">This is a live preview. <Link href="/app" className="font-semibold text-blue hover:underline">Run the real thing →</Link></p>
+      <p className="mt-3 text-center text-xs text-muted">This is a live preview. <Link href="/demo" className="font-semibold text-blue hover:underline">Run the real thing →</Link></p>
     </div>
   );
 }
@@ -483,7 +483,7 @@ function FinalCta() {
           <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Give your data rules it can’t forget.</h2>
           <p className="mx-auto mt-3 max-w-xl text-white/70">Protect a record, then try to open it as different people. Watch the right person get in, the wrong one turned away, and the receipts pile up — all live.</p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/app" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-ink transition-transform hover:-translate-y-0.5">Launch the demo <ArrowRight className="h-5 w-5" /></Link>
+            <Link href="/demo" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-ink transition-transform hover:-translate-y-0.5">Launch the demo <ArrowRight className="h-5 w-5" /></Link>
             <Link href="/docs" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3.5 font-bold text-white transition-colors hover:bg-white/10">Read the docs</Link>
           </div>
         </div>
@@ -494,7 +494,7 @@ function FinalCta() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [["Live demo", "/app"], ["Documentation", "/docs"]] as [string, string][] },
+    { h: "Product", links: [["Live demo", "/demo"], ["Documentation", "/docs"]] as [string, string][] },
     { h: "Resources", links: [["GitHub", GITHUB_URL], ["PyPI", PYPI_URL]] as [string, string][] },
   ];
   const ext = (href: string) => href.startsWith("http");
