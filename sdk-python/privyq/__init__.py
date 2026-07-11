@@ -29,7 +29,7 @@ from .exceptions import (
     PrivyQError,
     SignatureVerificationError,
 )
-from .keys import generate_key, revoke_key, rotate_key
+from .keys import generate_key, get_key, revoke_key, rotate_key
 from .models import AccessResult, ProtectedData, Receipt, VerificationResult
 from .protect import protect
 from .verify import verify
@@ -45,6 +45,7 @@ __all__ = [
     "get_config",
     "Config",
     "generate_key",
+    "get_key",
     "rotate_key",
     "revoke_key",
     "ProtectedData",

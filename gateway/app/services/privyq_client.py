@@ -98,6 +98,16 @@ def generate_key(req: dict):
     }
 
 
+def get_key(key_id: str):
+    """Fetch public key info by id (closes v1 gap B6; core GetPublicKey RPC)."""
+    _ensure_configured()
+    key = privyq.get_key(key_id)
+    return {
+        "key_id": key.key_id, "public_key": key.public_key, "algorithm": key.algorithm,
+        "type": key.type, "status": key.status, "created_at": key.created_at,
+    }
+
+
 def rotate_key(key_id: str):
     _ensure_configured()
     resp = privyq.rotate_key(key_id)

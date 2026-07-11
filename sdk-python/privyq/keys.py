@@ -29,6 +29,12 @@ def generate_key(
     return client.call("GenerateKey", req).key
 
 
+def get_key(key_id: str, *, client: Client | None = None):
+    """Fetch public key info by id (the v2 ``get_key`` verb; core ``GetPublicKey``)."""
+    client = client or get_default_client()
+    return client.call("GetPublicKey", pb.GetPublicKeyRequest(key_id=key_id)).key
+
+
 def rotate_key(key_id: str, *, grace_period: str = "24h", client: Client | None = None):
     client = client or get_default_client()
     return client.call("RotateKey", pb.RotateKeyRequest(key_id=key_id, grace_period=grace_period))

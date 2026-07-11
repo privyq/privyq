@@ -18,6 +18,12 @@ async def generate(req: KeyGenerateRequest, _identity: dict = Depends(authentica
     return privyq_client.generate_key(req.model_dump())
 
 
+@router.get("/keys/{key_id}", response_model=KeyResponse, tags=["keys"])
+async def get_key(key_id: str, _identity: dict = Depends(authenticate)):
+    """Get public key info by id (BP App B; closes v1 gap B6)."""
+    return privyq_client.get_key(key_id)
+
+
 @router.post("/keys/rotate/{key_id}", tags=["keys"])
 async def rotate(key_id: str, _identity: dict = Depends(authenticate)):
     """Rotate a key (BP App B.6)."""

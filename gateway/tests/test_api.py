@@ -81,6 +81,17 @@ def test_list_keys(client):
     assert all("status" in k and "algorithm" in k for k in keys)
 
 
+def test_get_key_by_id(client):
+    # GET /keys/{id} — closes v1 gap B6.
+    gen = client.post("/api/v1/keys/generate", json={"type": "encryption", "owner": "getter"})
+    assert gen.status_code == 200, gen.text
+    key_id = gen.json()["key_id"]
+    r = client.get(f"/api/v1/keys/{key_id}")
+    assert r.status_code == 200, r.text
+    key = r.json()
+    assert key["key_id"] == key_id and key["public_key"] and key["type"] == "encryption"
+
+
 def test_policy_evaluate(client):
     policy = {
         "conditions": [
