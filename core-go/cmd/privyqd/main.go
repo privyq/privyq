@@ -54,16 +54,19 @@ func main() {
 		evidence = pg.Evidence()
 		log.Printf("privyqd: using PostgreSQL persistence")
 	} else {
-		switch keyStorage {
-		case "memory":
-			store = keymanager.NewMemoryStore()
-		case "local":
-			var err error
-			if store, err = keymanager.NewLocalFileStore(keyPath, masterPw); err != nil {
-				log.Fatalf("privyqd: key storage: %v", err)
-			}
-		default:
-			log.Fatalf("privyqd: KEY_STORAGE=%q not supported in v1.0 (use memory|local)", keyStorage)
+		var err error
+		store, err = keymanager.NewKeyStorage(keymanager.Config{
+			Backend:   keyStorage,
+			Path:      keyPath,
+			Password:  masterPw,
+			KMSKeyID:  os.Getenv("KMS_KEY_ID"),
+			Region:    os.Getenv("AWS_REGION"),
+			HSMModule: os.Getenv("HSM_MODULE"),
+			HSMPin:    os.Getenv("HSM_PIN"),
+			HSMLabel:  os.Getenv("HSM_LABEL"),
+		})
+		if err != nil {
+			log.Fatalf("privyqd: key storage: %v", err)
 		}
 	}
 
