@@ -485,6 +485,81 @@
         }
       }
     },
+    "/api/v1/keys/{key_id}": {
+      "get": {
+        "tags": [
+          "keys"
+        ],
+        "summary": "Get Key",
+        "description": "Get public key info by id (BP App B; closes v1 gap B6).",
+        "operationId": "get_key_api_v1_keys__key_id__get",
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key Id"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/keys/rotate/{key_id}": {
       "post": {
         "tags": [
@@ -707,6 +782,462 @@
         }
       }
     },
+    "/api/v1/check": {
+      "post": {
+        "tags": [
+          "decision"
+        ],
+        "summary": "Check",
+        "description": "The PDP decision \u2014 can this identity access this? No data revealed.\n\nAny service can call this to enforce the same policies consistently.",
+        "operationId": "check_api_v1_check_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/explain": {
+      "post": {
+        "tags": [
+          "decision"
+        ],
+        "summary": "Explain",
+        "description": "Human-readable reason for a decision (great for 403 bodies, debugging, UX).",
+        "operationId": "explain_api_v1_explain_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seal": {
+      "post": {
+        "tags": [
+          "signatures"
+        ],
+        "summary": "Seal",
+        "description": "Post-quantum signature over data (the v2 seal() verb).",
+        "operationId": "seal_api_v1_seal_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SealRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SealResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/export": {
+      "get": {
+        "tags": [
+          "evidence"
+        ],
+        "summary": "Export Evidence",
+        "description": "Export the evidence trail as json | csv | pdf for compliance.",
+        "operationId": "export_evidence_api_v1_evidence_export_get",
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Resource Id"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Actor Id"
+            }
+          },
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Start Time"
+            }
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "End Time"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "json",
+              "title": "Format"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/compliance/report": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "Compliance Report",
+        "description": "Map the evidence trail onto GDPR/HIPAA/SOC2 controls.",
+        "operationId": "compliance_report_api_v1_compliance_report_get",
+        "parameters": [
+          {
+            "name": "framework",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "GDPR",
+              "title": "Framework"
+            }
+          },
+          {
+            "name": "resource_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Resource Id"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Actor Id"
+            }
+          },
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Start Time"
+            }
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "End Time"
+            }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "tags": [
@@ -780,6 +1311,128 @@
           "audit_evidence"
         ],
         "title": "AccessResponse"
+      },
+      "CheckRequest": {
+        "properties": {
+          "identity": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Identity"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy"
+          },
+          "protected_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protected Data",
+            "description": "base64 envelope (policy taken from it)"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "emit_evidence": {
+            "type": "boolean",
+            "title": "Emit Evidence",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity"
+        ],
+        "title": "CheckRequest"
+      },
+      "DecisionResponse": {
+        "properties": {
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed",
+            "default": false
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "matched": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched"
+          },
+          "failed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failed"
+          },
+          "obligations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Obligations"
+          },
+          "policy_id": {
+            "type": "string",
+            "title": "Policy Id",
+            "default": ""
+          },
+          "evaluated_at": {
+            "type": "string",
+            "title": "Evaluated At",
+            "default": ""
+          },
+          "evaluated_conditions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evaluated Conditions"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "title": "DecisionResponse"
       },
       "EvidenceLogResponse": {
         "properties": {
@@ -904,6 +1557,22 @@
         },
         "type": "object",
         "title": "EvidenceModel"
+      },
+      "ExplainResponse": {
+        "properties": {
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed",
+            "default": false
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ExplainResponse"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1236,6 +1905,61 @@
           "evidence"
         ],
         "title": "ProtectResponse"
+      },
+      "SealRequest": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "title": "Data",
+            "description": "base64-encoded data to sign"
+          },
+          "key_id": {
+            "type": "string",
+            "title": "Key Id",
+            "default": ""
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "SealRequest"
+      },
+      "SealResponse": {
+        "properties": {
+          "data_hash": {
+            "type": "string",
+            "title": "Data Hash",
+            "default": ""
+          },
+          "signature": {
+            "type": "string",
+            "title": "Signature",
+            "default": ""
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm",
+            "default": ""
+          },
+          "key_id": {
+            "type": "string",
+            "title": "Key Id",
+            "default": ""
+          },
+          "sealed_at": {
+            "type": "string",
+            "title": "Sealed At",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "SealResponse"
       },
       "ValidationError": {
         "properties": {

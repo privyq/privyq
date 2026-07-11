@@ -81,6 +81,77 @@ def test_list_keys(client):
     assert all("status" in k and "algorithm" in k for k in keys)
 
 
+def test_api_key_store_from_env(monkeypatch):
+    # API keys come from a store, not a hardcoded dict (v2 closes C4).
+    from app.auth import auth
+    monkeypatch.setenv("PRIVYQ_API_KEYS", '{"k_live_x": {"user_id": "svc", "role": "service", "tenant_id": "acme"}}')
+    auth._api_key_store.cache_clear()
+    try:
+        store = auth._api_key_store()
+        assert "k_live_x" in store
+        assert store["k_live_x"]["tenant_id"] == "acme"
+        # No demo/hardcoded keys leak in.
+        assert "demo-key" not in store
+    finally:
+        auth._api_key_store.cache_clear()
+
+
+def test_check_decision_pdp(client):
+    # Protect, then use /check as a PDP — no data revealed.
+    p = client.post("/api/v1/protect", json={
+        "data": "aGVsbG8=",  # base64 "hello"
+        "policy": {"combination": "all", "conditions": [
+            {"type": "role", "operator": "equals", "values": ["doctor"]}]},
+        "actor": {"user_id": "sys"},
+    })
+    assert p.status_code == 200, p.text
+    protected = p.json()["protected_data"]
+
+    granted = client.post("/api/v1/check", json={
+        "identity": {"role": "doctor"}, "protected_data": protected})
+    assert granted.status_code == 200, granted.text
+    assert granted.json()["allowed"] is True
+
+    denied = client.post("/api/v1/check", json={
+        "identity": {"role": "nurse"}, "protected_data": protected})
+    d = denied.json()
+    assert d["allowed"] is False and d["reason"] and "role" in d["failed"]
+
+
+def test_explain_route(client):
+    r = client.post("/api/v1/explain", json={
+        "identity": {"role": "nurse"},
+        "policy": {"combination": "all", "conditions": [
+            {"type": "role", "operator": "equals", "values": ["doctor"]}]},
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["allowed"] is False and r.json()["reason"]
+
+
+def test_seal_route(client):
+    r = client.post("/api/v1/seal", json={"data": "ZG9jdW1lbnQ="})  # "document"
+    assert r.status_code == 200, r.text
+    sealed = r.json()
+    assert sealed["signature"] and sealed["data_hash"] and sealed["algorithm"]
+
+
+def test_evidence_export_csv(client):
+    # Generate some activity first.
+    client.post("/api/v1/protect", json={
+        "data": "eA==", "policy": {"conditions": []}, "actor": {"user_id": "exporter"}})
+    r = client.get("/api/v1/evidence/export", params={"format": "csv"})
+    assert r.status_code == 200, r.text
+    assert "text/csv" in r.headers["content-type"]
+    assert b"position" in r.content
+
+
+def test_compliance_report_route(client):
+    r = client.get("/api/v1/compliance/report", params={"framework": "GDPR"})
+    assert r.status_code == 200, r.text
+    report = r.json()
+    assert report["framework"] == "GDPR" and "controls" in report
+
+
 def test_get_key_by_id(client):
     # GET /keys/{id} — closes v1 gap B6.
     gen = client.post("/api/v1/keys/generate", json={"type": "encryption", "owner": "getter"})

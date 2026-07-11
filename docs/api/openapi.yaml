@@ -1,0 +1,1306 @@
+openapi: 3.1.0
+info:
+  title: PrivyQ Gateway
+  description: REST API for policy-governed post-quantum encryption with verifiable
+    evidence.
+  version: 1.0.0
+paths:
+  /api/v1/protect:
+    post:
+      tags:
+      - encryption
+      summary: Protect
+      description: Encrypt data with an embedded policy (BP App B.1).
+      operationId: protect_api_v1_protect_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProtectRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtectResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/access:
+    post:
+      tags:
+      - encryption
+      summary: Access
+      description: 'Decrypt data if the embedded policy is satisfied (BP App B.2).
+
+
+        Returns 403 with the policy evaluation when access is denied.'
+      operationId: access_api_v1_access_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/verify:
+    post:
+      tags:
+      - audit
+      summary: Verify
+      description: Verify an audit evidence entry (BP App B.3).
+      operationId: verify_api_v1_verify_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evidence/log:
+    get:
+      tags:
+      - audit
+      summary: Evidence Log
+      description: Retrieve audit evidence for a resource/actor (BP App B.4).
+      operationId: evidence_log_api_v1_evidence_log_get
+      parameters:
+      - name: resource_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Resource Id
+      - name: actor_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Actor Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceLogResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/keys:
+    get:
+      tags:
+      - keys
+      summary: List Keys
+      description: List all managed keys with their status.
+      operationId: list_keys_api_v1_keys_get
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/keys/generate:
+    post:
+      tags:
+      - keys
+      summary: Generate
+      description: Generate a new key pair (BP App B.5).
+      operationId: generate_api_v1_keys_generate_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyGenerateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/keys/{key_id}:
+    get:
+      tags:
+      - keys
+      summary: Get Key
+      description: Get public key info by id (BP App B; closes v1 gap B6).
+      operationId: get_key_api_v1_keys__key_id__get
+      parameters:
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Key Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/keys/rotate/{key_id}:
+    post:
+      tags:
+      - keys
+      summary: Rotate
+      description: Rotate a key (BP App B.6).
+      operationId: rotate_api_v1_keys_rotate__key_id__post
+      parameters:
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Key Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/keys/revoke/{key_id}:
+    post:
+      tags:
+      - keys
+      summary: Revoke
+      description: Revoke a key.
+      operationId: revoke_api_v1_keys_revoke__key_id__post
+      parameters:
+      - name: key_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Key Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/policy/evaluate:
+    post:
+      tags:
+      - policy
+      summary: Evaluate
+      description: "Evaluate a policy against an identity/context \u2014 no side effects.\n\
+        \nPowers the interactive policy playground; runs the core's real policy engine."
+      operationId: evaluate_api_v1_policy_evaluate_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyEvaluateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyEvaluationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/check:
+    post:
+      tags:
+      - decision
+      summary: Check
+      description: "The PDP decision \u2014 can this identity access this? No data\
+        \ revealed.\n\nAny service can call this to enforce the same policies consistently."
+      operationId: check_api_v1_check_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/explain:
+    post:
+      tags:
+      - decision
+      summary: Explain
+      description: Human-readable reason for a decision (great for 403 bodies, debugging,
+        UX).
+      operationId: explain_api_v1_explain_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplainResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/seal:
+    post:
+      tags:
+      - signatures
+      summary: Seal
+      description: Post-quantum signature over data (the v2 seal() verb).
+      operationId: seal_api_v1_seal_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SealRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SealResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evidence/export:
+    get:
+      tags:
+      - evidence
+      summary: Export Evidence
+      description: Export the evidence trail as json | csv | pdf for compliance.
+      operationId: export_evidence_api_v1_evidence_export_get
+      parameters:
+      - name: resource_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Resource Id
+      - name: actor_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Actor Id
+      - name: start_time
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Start Time
+      - name: end_time
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: End Time
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          default: json
+          title: Format
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/compliance/report:
+    get:
+      tags:
+      - compliance
+      summary: Compliance Report
+      description: Map the evidence trail onto GDPR/HIPAA/SOC2 controls.
+      operationId: compliance_report_api_v1_compliance_report_get
+      parameters:
+      - name: framework
+        in: query
+        required: false
+        schema:
+          type: string
+          default: GDPR
+          title: Framework
+      - name: resource_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Resource Id
+      - name: actor_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Actor Id
+      - name: start_time
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Start Time
+      - name: end_time
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: End Time
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/health:
+    get:
+      tags:
+      - ops
+      summary: Health
+      description: Service health, including core reachability (BP App B.7).
+      operationId: health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+components:
+  schemas:
+    AccessRequest:
+      properties:
+        protected_data:
+          type: string
+          title: Protected Data
+        identity:
+          additionalProperties: true
+          type: object
+          title: Identity
+        context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Context
+      type: object
+      required:
+      - protected_data
+      - identity
+      title: AccessRequest
+    AccessResponse:
+      properties:
+        data:
+          type: string
+          title: Data
+          description: base64-encoded plaintext
+        audit_evidence:
+          $ref: '#/components/schemas/EvidenceModel'
+      type: object
+      required:
+      - data
+      - audit_evidence
+      title: AccessResponse
+    CheckRequest:
+      properties:
+        identity:
+          additionalProperties: true
+          type: object
+          title: Identity
+        policy:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Policy
+        protected_data:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Protected Data
+          description: base64 envelope (policy taken from it)
+        context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Context
+        emit_evidence:
+          type: boolean
+          title: Emit Evidence
+          default: false
+      type: object
+      required:
+      - identity
+      title: CheckRequest
+    DecisionResponse:
+      properties:
+        allowed:
+          type: boolean
+          title: Allowed
+          default: false
+        reason:
+          type: string
+          title: Reason
+          default: ''
+        matched:
+          items:
+            type: string
+          type: array
+          title: Matched
+        failed:
+          items:
+            type: string
+          type: array
+          title: Failed
+        obligations:
+          items:
+            type: string
+          type: array
+          title: Obligations
+        policy_id:
+          type: string
+          title: Policy Id
+          default: ''
+        evaluated_at:
+          type: string
+          title: Evaluated At
+          default: ''
+        evaluated_conditions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Evaluated Conditions
+        evidence:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Evidence
+      type: object
+      title: DecisionResponse
+    EvidenceLogResponse:
+      properties:
+        entries:
+          items:
+            $ref: '#/components/schemas/EvidenceModel'
+          type: array
+          title: Entries
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+        verified:
+          type: boolean
+          title: Verified
+      type: object
+      required:
+      - entries
+      - total
+      - page
+      - page_size
+      - verified
+      title: EvidenceLogResponse
+    EvidenceModel:
+      properties:
+        evidence_id:
+          type: string
+          title: Evidence Id
+          default: ''
+        version:
+          type: string
+          title: Version
+          default: ''
+        timestamp:
+          type: string
+          title: Timestamp
+          default: ''
+        actor:
+          additionalProperties: true
+          type: object
+          title: Actor
+        resource_id:
+          type: string
+          title: Resource Id
+          default: ''
+        resource_hash:
+          type: string
+          title: Resource Hash
+          default: ''
+        policy:
+          additionalProperties: true
+          type: object
+          title: Policy
+        operation:
+          type: string
+          title: Operation
+          default: ''
+        result:
+          type: string
+          title: Result
+          default: ''
+        policy_evaluation:
+          additionalProperties: true
+          type: object
+          title: Policy Evaluation
+        signature:
+          type: string
+          title: Signature
+          default: ''
+        public_key_id:
+          type: string
+          title: Public Key Id
+          default: ''
+        signing_algorithm:
+          type: string
+          title: Signing Algorithm
+          default: ''
+        parent_hash:
+          type: string
+          title: Parent Hash
+          default: ''
+        position:
+          type: integer
+          title: Position
+          default: 0
+        metadata:
+          additionalProperties:
+            type: string
+          type: object
+          title: Metadata
+      type: object
+      title: EvidenceModel
+    ExplainResponse:
+      properties:
+        allowed:
+          type: boolean
+          title: Allowed
+          default: false
+        reason:
+          type: string
+          title: Reason
+          default: ''
+      type: object
+      title: ExplainResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        services:
+          additionalProperties:
+            type: string
+          type: object
+          title: Services
+        version:
+          type: string
+          title: Version
+      type: object
+      required:
+      - status
+      - services
+      - version
+      title: HealthResponse
+    KeyGenerateRequest:
+      properties:
+        algorithm:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Algorithm
+        type:
+          type: string
+          title: Type
+          default: encryption
+        organization:
+          type: string
+          title: Organization
+          default: ''
+        owner:
+          type: string
+          title: Owner
+          default: ''
+        metadata:
+          additionalProperties:
+            type: string
+          type: object
+          title: Metadata
+      type: object
+      title: KeyGenerateRequest
+    KeyInfoModel:
+      properties:
+        key_id:
+          type: string
+          title: Key Id
+          default: ''
+        algorithm:
+          type: string
+          title: Algorithm
+          default: ''
+        type:
+          type: string
+          title: Type
+          default: ''
+        public_key:
+          type: string
+          title: Public Key
+          default: ''
+        status:
+          type: string
+          title: Status
+          default: ''
+        created_at:
+          type: string
+          title: Created At
+          default: ''
+        expires_at:
+          type: string
+          title: Expires At
+          default: ''
+        rotated_at:
+          type: string
+          title: Rotated At
+          default: ''
+        revoked_at:
+          type: string
+          title: Revoked At
+          default: ''
+        organization:
+          type: string
+          title: Organization
+          default: ''
+        owner:
+          type: string
+          title: Owner
+          default: ''
+      type: object
+      title: KeyInfoModel
+    KeyListResponse:
+      properties:
+        keys:
+          items:
+            $ref: '#/components/schemas/KeyInfoModel'
+          type: array
+          title: Keys
+      type: object
+      required:
+      - keys
+      title: KeyListResponse
+    KeyResponse:
+      properties:
+        key_id:
+          type: string
+          title: Key Id
+        public_key:
+          type: string
+          title: Public Key
+        algorithm:
+          type: string
+          title: Algorithm
+        type:
+          type: string
+          title: Type
+        status:
+          type: string
+          title: Status
+        created_at:
+          type: string
+          title: Created At
+      type: object
+      required:
+      - key_id
+      - public_key
+      - algorithm
+      - type
+      - status
+      - created_at
+      title: KeyResponse
+    PolicyEvaluateRequest:
+      properties:
+        policy:
+          additionalProperties: true
+          type: object
+          title: Policy
+        identity:
+          additionalProperties: true
+          type: object
+          title: Identity
+        context:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Context
+      type: object
+      required:
+      - policy
+      - identity
+      title: PolicyEvaluateRequest
+    PolicyEvaluationResponse:
+      properties:
+        decision:
+          type: string
+          title: Decision
+          default: denied
+        reason:
+          type: string
+          title: Reason
+          default: ''
+        evaluated_conditions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Evaluated Conditions
+      type: object
+      title: PolicyEvaluationResponse
+    ProtectRequest:
+      properties:
+        data:
+          type: string
+          title: Data
+          description: base64-encoded plaintext
+        policy:
+          additionalProperties: true
+          type: object
+          title: Policy
+        algorithm:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Algorithm
+        key_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Key Id
+        resource_id:
+          type: string
+          title: Resource Id
+          default: ''
+        actor:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Actor
+      type: object
+      required:
+      - data
+      - policy
+      title: ProtectRequest
+    ProtectResponse:
+      properties:
+        protected_data:
+          type: string
+          title: Protected Data
+          description: base64-encoded envelope
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+        evidence:
+          $ref: '#/components/schemas/EvidenceModel'
+      type: object
+      required:
+      - protected_data
+      - metadata
+      - evidence
+      title: ProtectResponse
+    SealRequest:
+      properties:
+        data:
+          type: string
+          title: Data
+          description: base64-encoded data to sign
+        key_id:
+          type: string
+          title: Key Id
+          default: ''
+        algorithm:
+          type: string
+          title: Algorithm
+          default: ''
+      type: object
+      required:
+      - data
+      title: SealRequest
+    SealResponse:
+      properties:
+        data_hash:
+          type: string
+          title: Data Hash
+          default: ''
+        signature:
+          type: string
+          title: Signature
+          default: ''
+        algorithm:
+          type: string
+          title: Algorithm
+          default: ''
+        key_id:
+          type: string
+          title: Key Id
+          default: ''
+        sealed_at:
+          type: string
+          title: Sealed At
+          default: ''
+      type: object
+      title: SealResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VerifyRequest:
+      properties:
+        evidence:
+          $ref: '#/components/schemas/EvidenceModel'
+        reevaluate:
+          type: boolean
+          title: Reevaluate
+          default: true
+      type: object
+      required:
+      - evidence
+      title: VerifyRequest
+    VerifyResponse:
+      properties:
+        verified:
+          type: boolean
+          title: Verified
+        signature_valid:
+          type: boolean
+          title: Signature Valid
+        chain_valid:
+          type: boolean
+          title: Chain Valid
+        policy_compliant:
+          type: boolean
+          title: Policy Compliant
+        detail:
+          type: string
+          title: Detail
+          default: ''
+      type: object
+      required:
+      - verified
+      - signature_valid
+      - chain_valid
+      - policy_compliant
+      title: VerifyResponse

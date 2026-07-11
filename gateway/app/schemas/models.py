@@ -107,6 +107,45 @@ class KeyListResponse(BaseModel):
     keys: list[KeyInfoModel]
 
 
+class CheckRequest(BaseModel):
+    identity: dict[str, Any]
+    policy: dict[str, Any] | None = None
+    protected_data: str | None = Field(None, description="base64 envelope (policy taken from it)")
+    context: dict[str, Any] | None = None
+    emit_evidence: bool = False
+
+
+class DecisionResponse(BaseModel):
+    allowed: bool = False
+    reason: str = ""
+    matched: list[str] = Field(default_factory=list)
+    failed: list[str] = Field(default_factory=list)
+    obligations: list[str] = Field(default_factory=list)
+    policy_id: str = ""
+    evaluated_at: str = ""
+    evaluated_conditions: list[dict[str, Any]] = Field(default_factory=list)
+    evidence: dict[str, Any] | None = None
+
+
+class ExplainResponse(BaseModel):
+    allowed: bool = False
+    reason: str = ""
+
+
+class SealRequest(BaseModel):
+    data: str = Field(..., description="base64-encoded data to sign")
+    key_id: str = ""
+    algorithm: str = ""
+
+
+class SealResponse(BaseModel):
+    data_hash: str = ""
+    signature: str = ""
+    algorithm: str = ""
+    key_id: str = ""
+    sealed_at: str = ""
+
+
 class PolicyEvaluateRequest(BaseModel):
     policy: dict[str, Any]
     identity: dict[str, Any]

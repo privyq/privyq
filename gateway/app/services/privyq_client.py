@@ -145,6 +145,77 @@ def evaluate_policy(policy: dict, identity: dict, context: dict | None):
     return MessageToDict(resp.evaluation, preserving_proto_field_name=True)
 
 
+def _context(ctx: dict | None) -> pb.Context:
+    ctx = ctx or {}
+    return pb.Context(
+        timestamp=ctx.get("timestamp", ""),
+        ip_address=ctx.get("ip_address", ""),
+        session_id=ctx.get("session_id", ""),
+        user_agent=ctx.get("user_agent", ""),
+    )
+
+
+def check(identity: dict, policy: dict | None, protected_data_b64: str | None,
+          context: dict | None, emit_evidence: bool):
+    """The v2 PDP decision: does this identity satisfy the policy? No data revealed."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.CheckRequest(
+        identity=to_proto_identity(identity),
+        context=_context(context),
+        emit_evidence=emit_evidence,
+    )
+    if protected_data_b64:
+        req.protected_data = base64.b64decode(protected_data_b64)
+    elif policy is not None:
+        req.policy.CopyFrom(to_proto_policy(policy))
+    resp = client.call("Check", req)
+    out = MessageToDict(resp.decision, preserving_proto_field_name=True)
+    if emit_evidence and resp.HasField("evidence"):
+        out["evidence"] = _evidence_dict(resp.evidence)
+    return out
+
+
+def explain(identity: dict, policy: dict | None, protected_data_b64: str | None, context: dict | None):
+    """Human-readable why for a decision (sugar over check)."""
+    decision = check(identity, policy, protected_data_b64, context, emit_evidence=False)
+    return {"allowed": decision.get("allowed", False), "reason": decision.get("reason", "")}
+
+
+def seal(data_b64: str, key_id: str = "", algorithm: str = ""):
+    """Post-quantum signature over data (the v2 seal() verb)."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.SealRequest(data=base64.b64decode(data_b64), key_id=key_id, algorithm=algorithm)
+    resp = client.call("Seal", req)
+    return MessageToDict(resp.sealed, preserving_proto_field_name=True)
+
+
+def export_evidence(resource_id: str, actor_id: str, start_time: str, end_time: str, fmt: str):
+    """Export the evidence trail as json/csv/pdf for compliance."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.ExportEvidenceRequest(
+        resource_id=resource_id, actor_id=actor_id,
+        start_time=start_time, end_time=end_time, format=fmt,
+    )
+    resp = client.call("ExportEvidence", req)
+    return resp.content, resp.content_type, resp.filename
+
+
+def compliance_report(resource_id: str, actor_id: str, start_time: str, end_time: str, framework: str):
+    """Map the evidence trail onto GDPR/HIPAA/SOC2 controls."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.ComplianceReportRequest(
+        resource_id=resource_id, actor_id=actor_id,
+        start_time=start_time, end_time=end_time, framework=framework,
+    )
+    resp = client.call("ComplianceReport", req)
+    import json as _json
+    return _json.loads(resp.report_json.decode("utf-8"))
+
+
 def health():
     _ensure_configured()
     client = privyq.client.get_default_client()
