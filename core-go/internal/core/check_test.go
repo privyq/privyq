@@ -7,6 +7,33 @@ import (
 	"github.com/privyq/privyq/core-go/pkg/types"
 )
 
+// Break-glass: an emergency access is granted (via policy) and distinctly flagged
+// in the evidence trail (v2 blueprint §10).
+func TestBreakGlassFlaggedInEvidence(t *testing.T) {
+	svc := newService()
+	policy := types.Policy{Combination: "custom", CustomLogic: `role == "doctor" or emergency`}
+	env, _, err := svc.Protect([]byte("x"), policy, "", "", "r_bg", types.Identity{Role: "doctor"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(env)
+
+	// A nurse normally denied, but emergency=true satisfies the policy AND flags evidence.
+	_, ev, err := svc.Access(raw, types.Identity{Role: "nurse", Attributes: map[string]string{"emergency": "true"}}, types.Context{})
+	if err != nil {
+		t.Fatalf("break-glass access should be granted: %v", err)
+	}
+	if ev.Metadata["break_glass"] != "true" {
+		t.Fatalf("break-glass access should be flagged, metadata=%+v", ev.Metadata)
+	}
+
+	// A normal denied access is not flagged.
+	_, ev2, _ := svc.Access(raw, types.Identity{Role: "nurse"}, types.Context{})
+	if ev2.Metadata["break_glass"] == "true" {
+		t.Fatal("non-emergency access should not be flagged break_glass")
+	}
+}
+
 func TestCheckDecision(t *testing.T) {
 	svc := newService()
 	owner := types.Identity{UserID: "sys", Role: "doctor", Department: "cardiology"}

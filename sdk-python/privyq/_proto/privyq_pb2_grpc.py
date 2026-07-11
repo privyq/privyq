@@ -128,6 +128,11 @@ class PrivyQCoreStub:
                 request_serializer=privyq__pb2.ComplianceReportRequest.SerializeToString,
                 response_deserializer=privyq__pb2.ComplianceReportResponse.FromString,
                 _registered_method=True)
+        self.VerifyWallet = channel.unary_unary(
+                '/privyq.v1.PrivyQCore/VerifyWallet',
+                request_serializer=privyq__pb2.VerifyWalletRequest.SerializeToString,
+                response_deserializer=privyq__pb2.VerifyWalletResponse.FromString,
+                _registered_method=True)
         self.Health = channel.unary_unary(
                 '/privyq.v1.PrivyQCore/Health',
                 request_serializer=privyq__pb2.HealthRequest.SerializeToString,
@@ -261,6 +266,13 @@ class PrivyQCoreServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def VerifyWallet(self, request, context):
+        """v2 wallet/DID identity
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Health(self, request, context):
         """Ops
         """
@@ -360,6 +372,11 @@ def add_PrivyQCoreServicer_to_server(servicer, server):
                     servicer.ComplianceReport,
                     request_deserializer=privyq__pb2.ComplianceReportRequest.FromString,
                     response_serializer=privyq__pb2.ComplianceReportResponse.SerializeToString,
+            ),
+            'VerifyWallet': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyWallet,
+                    request_deserializer=privyq__pb2.VerifyWalletRequest.FromString,
+                    response_serializer=privyq__pb2.VerifyWalletResponse.SerializeToString,
             ),
             'Health': grpc.unary_unary_rpc_method_handler(
                     servicer.Health,
@@ -857,6 +874,33 @@ class PrivyQCore:
             '/privyq.v1.PrivyQCore/ComplianceReport',
             privyq__pb2.ComplianceReportRequest.SerializeToString,
             privyq__pb2.ComplianceReportResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def VerifyWallet(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/privyq.v1.PrivyQCore/VerifyWallet',
+            privyq__pb2.VerifyWalletRequest.SerializeToString,
+            privyq__pb2.VerifyWalletResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/json"
 	"testing"
 
@@ -185,6 +187,30 @@ func TestExportAndComplianceHandlers(t *testing.T) {
 	}
 	if report["framework"] != "GDPR" || report["total_events"].(float64) < 1 {
 		t.Fatalf("unexpected report: %v", report)
+	}
+}
+
+func TestVerifyWalletHandler(t *testing.T) {
+	s := newTestServer()
+	ctx := context.Background()
+	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
+	challenge := []byte("privyq-login-nonce")
+	sig := ed25519.Sign(priv, challenge)
+
+	ok, err := s.VerifyWallet(ctx, &pb.VerifyWalletRequest{Scheme: "ed25519", PublicKey: pub, Challenge: challenge, Signature: sig})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok.Valid || ok.Address == "" {
+		t.Fatalf("valid wallet should verify: %+v", ok)
+	}
+	// Tampered challenge → not valid (but not a transport error).
+	bad, err := s.VerifyWallet(ctx, &pb.VerifyWalletRequest{Scheme: "ed25519", PublicKey: pub, Challenge: []byte("other"), Signature: sig})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bad.Valid {
+		t.Fatal("tampered challenge must not verify")
 	}
 }
 

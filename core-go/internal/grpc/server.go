@@ -174,6 +174,15 @@ func (s *Server) ExportEvidence(_ context.Context, r *pb.ExportEvidenceRequest) 
 	return &pb.ExportEvidenceResponse{Content: content, ContentType: ct, Filename: fn}, nil
 }
 
+// VerifyWallet verifies a signed wallet/DID challenge (v2 identity-aware access).
+func (s *Server) VerifyWallet(_ context.Context, r *pb.VerifyWalletRequest) (*pb.VerifyWalletResponse, error) {
+	addr, err := s.svc.VerifyWallet(r.Scheme, r.PublicKey, r.Challenge, r.Signature)
+	if err != nil {
+		return &pb.VerifyWalletResponse{Valid: false, Detail: err.Error()}, nil
+	}
+	return &pb.VerifyWalletResponse{Valid: true, Address: addr, Detail: "wallet signature verified"}, nil
+}
+
 // ComplianceReport maps the evidence trail onto a framework's controls (JSON).
 func (s *Server) ComplianceReport(_ context.Context, r *pb.ComplianceReportRequest) (*pb.ComplianceReportResponse, error) {
 	report, err := s.svc.ComplianceReport(audit.Filter{

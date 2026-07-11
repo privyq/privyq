@@ -45,6 +45,7 @@ const (
 	PrivyQCore_GetEvidenceLog_FullMethodName   = "/privyq.v1.PrivyQCore/GetEvidenceLog"
 	PrivyQCore_ExportEvidence_FullMethodName   = "/privyq.v1.PrivyQCore/ExportEvidence"
 	PrivyQCore_ComplianceReport_FullMethodName = "/privyq.v1.PrivyQCore/ComplianceReport"
+	PrivyQCore_VerifyWallet_FullMethodName     = "/privyq.v1.PrivyQCore/VerifyWallet"
 	PrivyQCore_Health_FullMethodName           = "/privyq.v1.PrivyQCore/Health"
 )
 
@@ -76,6 +77,7 @@ type PrivyQCoreClient interface {
 	GetEvidenceLog(ctx context.Context, in *GetEvidenceLogRequest, opts ...grpc.CallOption) (*GetEvidenceLogResponse, error)
 	ExportEvidence(ctx context.Context, in *ExportEvidenceRequest, opts ...grpc.CallOption) (*ExportEvidenceResponse, error)
 	ComplianceReport(ctx context.Context, in *ComplianceReportRequest, opts ...grpc.CallOption) (*ComplianceReportResponse, error)
+	VerifyWallet(ctx context.Context, in *VerifyWalletRequest, opts ...grpc.CallOption) (*VerifyWalletResponse, error)
 	// Ops
 	Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -268,6 +270,16 @@ func (c *privyQCoreClient) ComplianceReport(ctx context.Context, in *ComplianceR
 	return out, nil
 }
 
+func (c *privyQCoreClient) VerifyWallet(ctx context.Context, in *VerifyWalletRequest, opts ...grpc.CallOption) (*VerifyWalletResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VerifyWalletResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_VerifyWallet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *privyQCoreClient) Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthResponse)
@@ -306,6 +318,7 @@ type PrivyQCoreServer interface {
 	GetEvidenceLog(context.Context, *GetEvidenceLogRequest) (*GetEvidenceLogResponse, error)
 	ExportEvidence(context.Context, *ExportEvidenceRequest) (*ExportEvidenceResponse, error)
 	ComplianceReport(context.Context, *ComplianceReportRequest) (*ComplianceReportResponse, error)
+	VerifyWallet(context.Context, *VerifyWalletRequest) (*VerifyWalletResponse, error)
 	// Ops
 	Health(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedPrivyQCoreServer()
@@ -371,6 +384,9 @@ func (UnimplementedPrivyQCoreServer) ExportEvidence(context.Context, *ExportEvid
 }
 func (UnimplementedPrivyQCoreServer) ComplianceReport(context.Context, *ComplianceReportRequest) (*ComplianceReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ComplianceReport not implemented")
+}
+func (UnimplementedPrivyQCoreServer) VerifyWallet(context.Context, *VerifyWalletRequest) (*VerifyWalletResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyWallet not implemented")
 }
 func (UnimplementedPrivyQCoreServer) Health(context.Context, *HealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
@@ -720,6 +736,24 @@ func _PrivyQCore_ComplianceReport_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivyQCore_VerifyWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).VerifyWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_VerifyWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).VerifyWallet(ctx, req.(*VerifyWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PrivyQCore_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HealthRequest)
 	if err := dec(in); err != nil {
@@ -816,6 +850,10 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ComplianceReport",
 			Handler:    _PrivyQCore_ComplianceReport_Handler,
+		},
+		{
+			MethodName: "VerifyWallet",
+			Handler:    _PrivyQCore_VerifyWallet_Handler,
 		},
 		{
 			MethodName: "Health",

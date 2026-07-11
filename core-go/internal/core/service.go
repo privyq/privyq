@@ -18,6 +18,7 @@ import (
 	"github.com/privyq/privyq/core-go/internal/audit"
 	"github.com/privyq/privyq/core-go/internal/compliance"
 	"github.com/privyq/privyq/core-go/internal/encryption"
+	"github.com/privyq/privyq/core-go/internal/identity"
 	"github.com/privyq/privyq/core-go/internal/kem"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
 	"github.com/privyq/privyq/core-go/internal/policies"
@@ -152,7 +153,7 @@ func (s *Service) Access(protectedData []byte, identity types.Identity, ctx type
 	ev, err := s.appendEvidence(audit.GenerateParams{
 		Actor: identity, ResourceID: envelope.ResourceID, ResourceHash: envelope.ResourceHash,
 		Policy: envelope.Policy, Operation: "access", Evaluation: eval,
-		Metadata: map[string]string{"ip_address": ctx.IPAddress, "session_id": ctx.SessionID, "user_agent": ctx.UserAgent},
+		Metadata: auditMeta(ctx, identity),
 	})
 	if err != nil {
 		return nil, types.Evidence{}, err
@@ -426,7 +427,7 @@ func (s *Service) Check(protectedData []byte, policy types.Policy, identity type
 	ev, err := s.appendEvidence(audit.GenerateParams{
 		Actor: identity, ResourceID: resourceID, ResourceHash: resourceHash,
 		Policy: policy, Operation: "check", Evaluation: decision.AsEvaluation(),
-		Metadata: map[string]string{"ip_address": ctx.IPAddress, "session_id": ctx.SessionID, "user_agent": ctx.UserAgent},
+		Metadata: auditMeta(ctx, identity),
 	})
 	if err != nil {
 		return decision, types.Evidence{}, err
@@ -440,6 +441,29 @@ func (s *Service) Version() string { return s.version }
 // ChainRoot returns the current evidence-chain root (the newest entry hash), used
 // by the opt-in anchoring job to notarise the log.
 func (s *Service) ChainRoot() (string, error) { return s.Evidence.LastHash() }
+
+// VerifyWallet verifies a signed wallet/DID challenge and returns the wallet
+// address to use as a trusted identity attribute (v2 blueprint §10, §14).
+func (s *Service) VerifyWallet(scheme string, publicKey, challenge, signature []byte) (string, error) {
+	return identity.VerifyWallet(scheme, publicKey, challenge, signature)
+}
+
+// isBreakGlass reports whether an identity is invoking emergency/break-glass
+// access, so the evidence entry can be distinctly flagged (v2 blueprint §10).
+func isBreakGlass(id types.Identity) bool {
+	v := strings.ToLower(strings.TrimSpace(id.Attributes["emergency"]))
+	return v == "true" || v == "1" || v == "yes"
+}
+
+// auditMeta builds the evidence metadata for an access/check, flagging
+// break-glass invocations distinctly for the audit trail.
+func auditMeta(ctx types.Context, id types.Identity) map[string]string {
+	m := map[string]string{"ip_address": ctx.IPAddress, "session_id": ctx.SessionID, "user_agent": ctx.UserAgent}
+	if isBreakGlass(id) {
+		m["break_glass"] = "true"
+	}
+	return m
+}
 
 // appendEvidence generates a signed, chained evidence entry and stores it. The
 // chain mutex guarantees the parent-hash read and append are atomic.
