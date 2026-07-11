@@ -306,6 +306,38 @@ func (s *Service) EvaluatePolicy(policy types.Policy, identity types.Identity, c
 	return policies.Evaluate(policy, identity, ctx)
 }
 
+// Check is the v2 authorization decision — the PDP `check()` verb (v2 blueprint
+// §6). It evaluates the policy (taken from the protected envelope when provided,
+// otherwise the explicit policy) against identity+context WITHOUT decrypting, and
+// returns a self-explaining Decision. When emitEvidence is set it records a signed,
+// chained evidence entry for the decision (operation "check"), so denials are as
+// auditable as grants.
+func (s *Service) Check(protectedData []byte, policy types.Policy, identity types.Identity, ctx types.Context, emitEvidence bool) (types.Decision, types.Evidence, error) {
+	resourceID, resourceHash := "", ""
+	if len(protectedData) > 0 {
+		var envelope types.ProtectedData
+		if err := json.Unmarshal(protectedData, &envelope); err != nil {
+			return types.Decision{}, types.Evidence{}, fmt.Errorf("invalid protected data: %w", err)
+		}
+		policy = envelope.Policy
+		resourceID, resourceHash = envelope.ResourceID, envelope.ResourceHash
+	}
+
+	decision := policies.Decide(policy, identity, ctx)
+	if !emitEvidence {
+		return decision, types.Evidence{}, nil
+	}
+	ev, err := s.appendEvidence(audit.GenerateParams{
+		Actor: identity, ResourceID: resourceID, ResourceHash: resourceHash,
+		Policy: policy, Operation: "check", Evaluation: decision.AsEvaluation(),
+		Metadata: map[string]string{"ip_address": ctx.IPAddress, "session_id": ctx.SessionID, "user_agent": ctx.UserAgent},
+	})
+	if err != nil {
+		return decision, types.Evidence{}, err
+	}
+	return decision, ev, nil
+}
+
 // Version reports the core version.
 func (s *Service) Version() string { return s.version }
 

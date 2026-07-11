@@ -24,15 +24,23 @@ func marshalEnvelope(env *types.ProtectedData) ([]byte, error) { return json.Mar
 
 // ── proto → domain ──
 
+func condsFromPB(in []*pb.Condition) []types.Condition {
+	out := make([]types.Condition, 0, len(in))
+	for _, c := range in {
+		out = append(out, types.Condition{Type: c.Type, Operator: c.Operator, Values: c.Values, Negate: c.Negate})
+	}
+	return out
+}
+
 func policyFromPB(p *pb.Policy) types.Policy {
 	if p == nil {
 		return types.Policy{Version: types.PolicyVersion, Combination: "all"}
 	}
-	conds := make([]types.Condition, 0, len(p.Conditions))
-	for _, c := range p.Conditions {
-		conds = append(conds, types.Condition{Type: c.Type, Operator: c.Operator, Values: c.Values, Negate: c.Negate})
+	return types.Policy{
+		Version: p.Version, Conditions: condsFromPB(p.Conditions), Combination: p.Combination,
+		CustomLogic: p.CustomLogic, Metadata: p.Metadata,
+		DenyConditions: condsFromPB(p.DenyConditions), Obligations: p.Obligations, PolicyID: p.PolicyId,
 	}
-	return types.Policy{Version: p.Version, Conditions: conds, Combination: p.Combination, CustomLogic: p.CustomLogic, Metadata: p.Metadata}
 }
 
 func identityFromPB(i *pb.Identity) types.Identity {
@@ -80,12 +88,32 @@ func evidenceFromPB(e *pb.Evidence) types.Evidence {
 
 // ── domain → proto ──
 
-func policyToPB(p types.Policy) *pb.Policy {
-	conds := make([]*pb.Condition, 0, len(p.Conditions))
-	for _, c := range p.Conditions {
-		conds = append(conds, &pb.Condition{Type: c.Type, Operator: c.Operator, Values: c.Values, Negate: c.Negate})
+func condsToPB(in []types.Condition) []*pb.Condition {
+	out := make([]*pb.Condition, 0, len(in))
+	for _, c := range in {
+		out = append(out, &pb.Condition{Type: c.Type, Operator: c.Operator, Values: c.Values, Negate: c.Negate})
 	}
-	return &pb.Policy{Version: p.Version, Conditions: conds, Combination: p.Combination, CustomLogic: p.CustomLogic, Metadata: p.Metadata}
+	return out
+}
+
+func policyToPB(p types.Policy) *pb.Policy {
+	return &pb.Policy{
+		Version: p.Version, Conditions: condsToPB(p.Conditions), Combination: p.Combination,
+		CustomLogic: p.CustomLogic, Metadata: p.Metadata,
+		DenyConditions: condsToPB(p.DenyConditions), Obligations: p.Obligations, PolicyId: p.PolicyID,
+	}
+}
+
+func decisionToPB(d types.Decision) *pb.Decision {
+	crs := make([]*pb.ConditionResult, 0, len(d.EvaluatedConditions))
+	for _, c := range d.EvaluatedConditions {
+		crs = append(crs, &pb.ConditionResult{Type: c.Type, Expected: c.Expected, Actual: c.Actual, Result: c.Result})
+	}
+	return &pb.Decision{
+		Allowed: d.Allowed, Reason: d.Reason, Matched: d.Matched, Failed: d.Failed,
+		Obligations: d.Obligations, PolicyId: d.PolicyID, EvaluatedAt: d.EvaluatedAt,
+		EvaluatedConditions: crs,
+	}
 }
 
 func identityToPB(i types.Identity) *pb.Identity {

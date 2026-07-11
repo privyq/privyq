@@ -70,6 +70,60 @@ func TestGetPublicKeyHandler(t *testing.T) {
 	}
 }
 
+func TestCheckHandler(t *testing.T) {
+	s := newTestServer()
+	ctx := context.Background()
+
+	// Protect data with a doctor-only policy, then Check against it.
+	prot, err := s.Protect(ctx, &pb.ProtectRequest{
+		Plaintext: []byte("record"),
+		Policy: &pb.Policy{Version: "2.0", Combination: "all",
+			Conditions: []*pb.Condition{{Type: "role", Operator: "equals", Values: []string{"doctor"}}}},
+		Actor: &pb.Identity{UserId: "sys"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// A doctor is allowed.
+	ok, err := s.Check(ctx, &pb.CheckRequest{ProtectedData: prot.ProtectedData, Identity: &pb.Identity{Role: "doctor"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok.Decision.Allowed {
+		t.Fatalf("doctor should be allowed: %s", ok.Decision.Reason)
+	}
+
+	// A nurse is denied, with a reason and a failed condition, and no data revealed.
+	deny, err := s.Check(ctx, &pb.CheckRequest{ProtectedData: prot.ProtectedData, Identity: &pb.Identity{Role: "nurse"}, EmitEvidence: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deny.Decision.Allowed {
+		t.Fatal("nurse should be denied")
+	}
+	if deny.Decision.Reason == "" || len(deny.Decision.Failed) == 0 {
+		t.Fatalf("denied decision should explain itself: %+v", deny.Decision)
+	}
+	if deny.Evidence == nil || deny.Evidence.EvidenceId == "" {
+		t.Fatal("emit_evidence should return a signed evidence entry for the denial")
+	}
+
+	// An explicit policy with obligations (no protected data): obligations flow through on grant.
+	grant, err := s.Check(ctx, &pb.CheckRequest{
+		Policy: &pb.Policy{Combination: "all", PolicyId: "p-obl",
+			Conditions:  []*pb.Condition{{Type: "role", Operator: "equals", Values: []string{"researcher"}}},
+			Obligations: []string{"mask:patient_name"}},
+		Identity: &pb.Identity{Role: "researcher"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !grant.Decision.Allowed || len(grant.Decision.Obligations) != 1 || grant.Decision.PolicyId != "p-obl" {
+		t.Fatalf("expected allowed with obligation and policy id: %+v", grant.Decision)
+	}
+}
+
 func TestConvertRoundTripThroughProtect(t *testing.T) {
 	// Drives policy/identity/evidence converters in both directions.
 	s := newTestServer()

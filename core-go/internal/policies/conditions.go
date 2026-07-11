@@ -11,6 +11,7 @@ package policies
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -55,6 +56,21 @@ type evalContext struct {
 	now time.Time
 }
 
+// resolveExtractor returns the registered extractor for a condition type, or a
+// generic attribute extractor that reads id.Attributes[type]. This is what makes
+// v2 ABAC work: a policy may condition on ANY attribute (approval_limit, shift,
+// subscription, credits, hospital, wallet, ...) without registering a new type
+// (v2 blueprint §6.1).
+func resolveExtractor(condType string) extractor {
+	if ext, ok := extractors[condType]; ok {
+		return ext
+	}
+	return extractor{
+		kind: kindString,
+		get:  func(id types.Identity, _ evalContext) string { return id.Attributes[condType] },
+	}
+}
+
 // applyOperator compares the requester's actual value against the condition
 // using the condition's operator, returning the boolean result. For time kinds,
 // actual is the request time and values are the policy's timestamps.
@@ -87,8 +103,53 @@ func applyOperator(cond types.Condition, actual string, kind attrKind) (bool, er
 		return strings.HasPrefix(actual, first), nil
 	case "ends_with":
 		return strings.HasSuffix(actual, first), nil
+	case "gt", "gte", "lt", "lte", "between":
+		// Numeric comparison for generic attributes (approval_limit, credits, ...).
+		return applyNumericOperator(op, actual, vals)
 	default:
 		return false, fmt.Errorf("operator %q not valid for a string condition", op)
+	}
+}
+
+// applyNumericOperator compares the requester's actual value against the policy
+// values numerically. Non-numeric operands make the condition fail (not error).
+func applyNumericOperator(op, actual string, vals []string) (bool, error) {
+	a, err := strconv.ParseFloat(strings.TrimSpace(actual), 64)
+	if err != nil {
+		return false, nil // a missing/non-numeric attribute simply doesn't satisfy the bound
+	}
+	num := func(i int) (float64, bool) {
+		if i >= len(vals) {
+			return 0, false
+		}
+		v, err := strconv.ParseFloat(strings.TrimSpace(vals[i]), 64)
+		return v, err == nil
+	}
+	switch op {
+	case "gt", "gte", "lt", "lte":
+		v, ok := num(0)
+		if !ok {
+			return false, fmt.Errorf("operator %q needs a numeric value", op)
+		}
+		switch op {
+		case "gt":
+			return a > v, nil
+		case "gte":
+			return a >= v, nil
+		case "lt":
+			return a < v, nil
+		default: // lte
+			return a <= v, nil
+		}
+	case "between":
+		lo, ok1 := num(0)
+		hi, ok2 := num(1)
+		if !ok1 || !ok2 {
+			return false, fmt.Errorf("operator \"between\" needs two numeric values")
+		}
+		return a >= lo && a <= hi, nil
+	default:
+		return false, fmt.Errorf("operator %q not numeric", op)
 	}
 }
 

@@ -157,6 +157,19 @@ func (s *Server) EvaluatePolicy(_ context.Context, r *pb.EvaluatePolicyRequest) 
 	return &pb.EvaluatePolicyResponse{Evaluation: evalToPB(eval)}, nil
 }
 
+// Check is the v2 PDP decision (no data revealed) — the `check()` verb.
+func (s *Server) Check(_ context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+	decision, ev, err := s.svc.Check(r.ProtectedData, policyFromPB(r.Policy), identityFromPB(r.Identity), contextFromPB(r.Context), r.EmitEvidence)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	resp := &pb.CheckResponse{Decision: decisionToPB(decision)}
+	if r.EmitEvidence {
+		resp.Evidence = evidenceToPB(ev)
+	}
+	return resp, nil
+}
+
 func (s *Server) Health(_ context.Context, _ *pb.HealthRequest) (*pb.HealthResponse, error) {
 	return &pb.HealthResponse{Status: "healthy", Version: s.svc.Version(), Services: map[string]string{"core": "healthy"}}, nil
 }

@@ -47,12 +47,19 @@ type Condition struct {
 }
 
 // Policy is the privacy policy embedded in protected data (Appendix D.1).
+//
+// v2 additions (Appendix D, v2 blueprint §6): DenyConditions (deny overrides
+// allow), Obligations honoured on grant, and a stable PolicyID. Conditions is the
+// ALLOW rule (v1 name kept so v1 envelopes still decode).
 type Policy struct {
-	Version     string            `json:"version"`
-	Conditions  []Condition       `json:"conditions"`
-	Combination string            `json:"combination"` // all | any | custom
-	CustomLogic string            `json:"custom_logic,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Version        string            `json:"version"`
+	Conditions     []Condition       `json:"conditions"`
+	Combination    string            `json:"combination"` // all | any | custom
+	CustomLogic    string            `json:"custom_logic,omitempty"`
+	Metadata       map[string]string `json:"metadata,omitempty"`
+	DenyConditions []Condition       `json:"deny_conditions,omitempty"`
+	Obligations    []string          `json:"obligations,omitempty"` // "mask:field", "log", "ttl:1h"
+	PolicyID       string            `json:"policy_id,omitempty"`
 }
 
 // Identity + context of a requester, evaluated against a Policy.
@@ -92,6 +99,35 @@ type PolicyEvaluation struct {
 
 // Granted reports whether the evaluation permits access.
 func (p PolicyEvaluation) Granted() bool { return p.Decision == "granted" }
+
+// Decision is the v2 authorization result returned by the engine's Decide and by
+// the Check RPC (v2 blueprint §6.2). It is richer than PolicyEvaluation: it names
+// which conditions matched and failed, carries the obligations the enforcement
+// point must honour on grant, and always explains itself.
+type Decision struct {
+	Allowed             bool              `json:"allowed"`
+	Reason              string            `json:"reason"`
+	Matched             []string          `json:"matched"`
+	Failed              []string          `json:"failed"`
+	Obligations         []string          `json:"obligations,omitempty"`
+	PolicyID            string            `json:"policy_id,omitempty"`
+	EvaluatedAt         string            `json:"evaluated_at"`
+	EvaluatedConditions []ConditionResult `json:"evaluated_conditions"`
+}
+
+// AsEvaluation projects a Decision onto the v1 PolicyEvaluation shape so existing
+// callers, audit records, and the EvaluatePolicy RPC keep working unchanged.
+func (d Decision) AsEvaluation() PolicyEvaluation {
+	decision := "denied"
+	if d.Allowed {
+		decision = "granted"
+	}
+	return PolicyEvaluation{
+		Decision:            decision,
+		Reason:              d.Reason,
+		EvaluatedConditions: d.EvaluatedConditions,
+	}
+}
 
 // ProtectedData is the on-the-wire envelope produced by Protect and consumed by
 // Access (docs/blueprint.md Appendix A.1). It carries the policy so that the
