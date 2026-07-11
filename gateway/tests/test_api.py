@@ -135,6 +135,42 @@ def test_seal_route(client):
     assert sealed["signature"] and sealed["data_hash"] and sealed["algorithm"]
 
 
+def test_seal_verify_roundtrip(client):
+    import base64
+    data_b64 = base64.b64encode(b"contract v3").decode()
+    sealed = client.post("/api/v1/seal", json={"data": data_b64}).json()
+    ok = client.post("/api/v1/verify/seal", json={"data": data_b64, "sealed": sealed})
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["valid"] is True
+    bad = client.post("/api/v1/verify/seal", json={
+        "data": base64.b64encode(b"forged").decode(), "sealed": sealed})
+    assert bad.json()["valid"] is False
+
+
+def test_wallet_verify_route(client):
+    import base64
+
+    import pytest
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+    except ImportError:  # pragma: no cover
+        pytest.skip("cryptography not installed")
+
+    sk = Ed25519PrivateKey.generate()
+    pub = sk.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+    challenge = b"privyq-nonce"
+    sig = sk.sign(challenge)
+    r = client.post("/api/v1/identity/wallet", json={
+        "scheme": "ed25519",
+        "public_key": base64.b64encode(pub).decode(),
+        "challenge": base64.b64encode(challenge).decode(),
+        "signature": base64.b64encode(sig).decode(),
+    })
+    assert r.status_code == 200, r.text
+    assert r.json()["valid"] is True and r.json()["address"].startswith("ed25519:")
+
+
 def test_evidence_export_csv(client):
     # Generate some activity first.
     client.post("/api/v1/protect", json={

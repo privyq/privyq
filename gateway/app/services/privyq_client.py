@@ -191,6 +191,36 @@ def seal(data_b64: str, key_id: str = "", algorithm: str = ""):
     return MessageToDict(resp.sealed, preserving_proto_field_name=True)
 
 
+def verify_seal(data_b64: str, sealed: dict):
+    """Verify a Sealed post-quantum signature against the original data."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.VerifySealRequest(
+        data=base64.b64decode(data_b64),
+        sealed=pb.Sealed(
+            data_hash=sealed.get("data_hash", ""), signature=sealed.get("signature", ""),
+            algorithm=sealed.get("algorithm", ""), key_id=sealed.get("key_id", ""),
+            sealed_at=sealed.get("sealed_at", ""),
+        ),
+    )
+    resp = client.call("VerifySeal", req)
+    return {"valid": resp.valid, "detail": resp.detail}
+
+
+def verify_wallet(scheme: str, public_key_b64: str, challenge_b64: str, signature_b64: str):
+    """Verify a signed wallet/DID challenge; returns the wallet address on success."""
+    _ensure_configured()
+    client = privyq.client.get_default_client()
+    req = pb.VerifyWalletRequest(
+        scheme=scheme,
+        public_key=base64.b64decode(public_key_b64),
+        challenge=base64.b64decode(challenge_b64),
+        signature=base64.b64decode(signature_b64),
+    )
+    resp = client.call("VerifyWallet", req)
+    return {"valid": resp.valid, "address": resp.address, "detail": resp.detail}
+
+
 def export_evidence(resource_id: str, actor_id: str, start_time: str, end_time: str, fmt: str):
     """Export the evidence trail as json/csv/pdf for compliance."""
     _ensure_configured()

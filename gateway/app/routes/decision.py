@@ -1,6 +1,7 @@
 """v2 decision & signature routes: the Policy-Decision-as-a-Service surface."""
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from ..auth.auth import authenticate
 from ..schemas.models import (
@@ -34,6 +35,30 @@ async def explain(req: CheckRequest, _identity: dict = Depends(authenticate)):
 async def seal(req: SealRequest, _identity: dict = Depends(authenticate)):
     """Post-quantum signature over data (the v2 seal() verb)."""
     return privyq_client.seal(req.data, req.key_id, req.algorithm)
+
+
+class VerifySealRequest(BaseModel):
+    data: str = Field(..., description="base64 original data")
+    sealed: dict
+
+
+class WalletVerifyRequest(BaseModel):
+    scheme: str = "ed25519"
+    public_key: str = Field(..., description="base64")
+    challenge: str = Field(..., description="base64")
+    signature: str = Field(..., description="base64")
+
+
+@router.post("/verify/seal", tags=["signatures"])
+async def verify_seal(req: VerifySealRequest, _identity: dict = Depends(authenticate)):
+    """Verify a Sealed post-quantum signature against the original data."""
+    return privyq_client.verify_seal(req.data, req.sealed)
+
+
+@router.post("/identity/wallet", tags=["identity"])
+async def verify_wallet(req: WalletVerifyRequest, _identity: dict = Depends(authenticate)):
+    """Verify a signed wallet/DID challenge; the address becomes a policy attribute."""
+    return privyq_client.verify_wallet(req.scheme, req.public_key, req.challenge, req.signature)
 
 
 @router.get("/evidence/export", tags=["evidence"])

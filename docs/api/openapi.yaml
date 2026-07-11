@@ -587,6 +587,91 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/verify/seal:
+    post:
+      tags:
+      - signatures
+      summary: Verify Seal
+      description: Verify a Sealed post-quantum signature against the original data.
+      operationId: verify_seal_api_v1_verify_seal_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifySealRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/identity/wallet:
+    post:
+      tags:
+      - identity
+      summary: Verify Wallet
+      description: Verify a signed wallet/DID challenge; the address becomes a policy
+        attribute.
+      operationId: verify_wallet_api_v1_identity_wallet_post
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletVerifyRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/evidence/export:
     get:
       tags:
@@ -1304,3 +1389,42 @@ components:
       - chain_valid
       - policy_compliant
       title: VerifyResponse
+    VerifySealRequest:
+      properties:
+        data:
+          type: string
+          title: Data
+          description: base64 original data
+        sealed:
+          additionalProperties: true
+          type: object
+          title: Sealed
+      type: object
+      required:
+      - data
+      - sealed
+      title: VerifySealRequest
+    WalletVerifyRequest:
+      properties:
+        scheme:
+          type: string
+          title: Scheme
+          default: ed25519
+        public_key:
+          type: string
+          title: Public Key
+          description: base64
+        challenge:
+          type: string
+          title: Challenge
+          description: base64
+        signature:
+          type: string
+          title: Signature
+          description: base64
+      type: object
+      required:
+      - public_key
+      - challenge
+      - signature
+      title: WalletVerifyRequest
