@@ -1,0 +1,63 @@
+{
+  "name": "@privyq/sdk",
+  "version": "0.1.0",
+  "description": "First-class TypeScript/JavaScript SDK for PrivyQ — post-quantum, policy-governed encryption with verifiable evidence. Talks to the PrivyQ gateway over REST; works in Node and the browser.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "gen:api": "openapi-typescript ../docs/api/openapi.json -o src/generated/openapi.d.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "privyq",
+    "post-quantum",
+    "encryption",
+    "policy",
+    "abac",
+    "pbac",
+    "audit",
+    "evidence",
+    "kyber",
+    "dilithium",
+    "sdk",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/privyq/privyq",
+    "directory": "sdk-js"
+  },
+  "homepage": "https://github.com/privyq/privyq/tree/main/sdk-js",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
+    "openapi-typescript": "^7.4.4",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
