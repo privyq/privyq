@@ -19,6 +19,7 @@ import (
 	"github.com/privyq/privyq/core-go/internal/kem"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
 	"github.com/privyq/privyq/core-go/internal/policies"
+	"github.com/privyq/privyq/core-go/internal/retention"
 	"github.com/privyq/privyq/core-go/internal/signatures"
 	"github.com/privyq/privyq/core-go/pkg/types"
 )
@@ -286,6 +287,37 @@ func (s *Service) VerifySeal(data []byte, sealed types.Sealed) (bool, error) {
 // GenerateEvidence mints and stores a standalone evidence entry.
 func (s *Service) GenerateEvidence(p audit.GenerateParams) (types.Evidence, error) {
 	return s.appendEvidence(p)
+}
+
+// RetentionSummary reports what a retention sweep did/found.
+type RetentionSummary struct {
+	KeysExpired        int
+	EvidencePastCutoff int
+}
+
+// RunRetention applies a retention policy as of now: it expires keys past their
+// ExpiresAt, and reports how many evidence entries are past the retention cutoff
+// (archival candidates). The signed evidence chain is not pruned in place, so it
+// stays end-to-end verifiable; archival/export is a separate, explicit step.
+func (s *Service) RunRetention(p retention.Policy, now time.Time) (RetentionSummary, error) {
+	var sum RetentionSummary
+	keys, err := s.ListKeys()
+	if err != nil {
+		return sum, err
+	}
+	for _, id := range retention.ExpiredKeys(keys, now) {
+		if _, err := s.Keys.Expire(id); err != nil {
+			return sum, err
+		}
+		sum.KeysExpired++
+	}
+	all, err := s.Evidence.All()
+	if err != nil {
+		return sum, err
+	}
+	_, expired := p.PartitionEvidence(all, now)
+	sum.EvidencePastCutoff = len(expired)
+	return sum, nil
 }
 
 // ExportEvidence renders the (filtered) evidence chain for compliance reporting

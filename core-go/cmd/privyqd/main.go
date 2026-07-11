@@ -9,12 +9,15 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
+	"time"
 
 	coregrpc "github.com/privyq/privyq/core-go/internal/grpc"
 
 	"github.com/privyq/privyq/core-go/internal/audit"
 	"github.com/privyq/privyq/core-go/internal/core"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
+	"github.com/privyq/privyq/core-go/internal/retention"
 	"github.com/privyq/privyq/core-go/internal/storage"
 	"github.com/privyq/privyq/core-go/pkg/pb"
 	"google.golang.org/grpc"
@@ -71,6 +74,31 @@ func main() {
 	}
 
 	svc := core.New(keymanager.New(store), evidence, version)
+
+	// Retention sweep (ARCH §12.3): daily, expire keys past their ExpiresAt and
+	// report archival candidates. Configurable via RETENTION_DAYS (default ~7y).
+	retDays := 0
+	if v := os.Getenv("RETENTION_DAYS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			retDays = n
+		}
+	}
+	retPolicy := retention.New(retDays)
+	log.Printf("privyqd: retention policy = %d days", int(retPolicy.MaxAge.Hours()/24))
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for {
+			if sum, err := svc.RunRetention(retPolicy, time.Now().UTC()); err != nil {
+				log.Printf("privyqd: retention sweep: %v", err)
+			} else if sum.KeysExpired > 0 || sum.EvidencePastCutoff > 0 {
+				log.Printf("privyqd: retention: expired %d keys; %d evidence entries past cutoff (archival candidates)",
+					sum.KeysExpired, sum.EvidencePastCutoff)
+			}
+			<-ticker.C
+		}
+	}()
+
 	server := coregrpc.NewServer(svc)
 
 	opts := []grpc.ServerOption{}

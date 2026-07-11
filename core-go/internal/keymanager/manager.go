@@ -152,6 +152,20 @@ func (m *Manager) Revoke(keyID, reason string) (types.KeyInfo, error) {
 	return rec.Info, nil
 }
 
+// Expire transitions a key to the Expired lifecycle state (used by retention
+// sweeps when a key passes its ExpiresAt). Idempotent.
+func (m *Manager) Expire(keyID string) (types.KeyInfo, error) {
+	rec, err := m.store.Get(keyID)
+	if err != nil {
+		return types.KeyInfo{}, err
+	}
+	rec.Info.Status = types.StatusExpired
+	if err := m.store.Update(rec.Info); err != nil {
+		return types.KeyInfo{}, err
+	}
+	return rec.Info, nil
+}
+
 // EnsureSigningKey returns an existing active signing key or generates one.
 // The core uses this to sign audit evidence when the caller supplies none.
 func (m *Manager) EnsureSigningKey() (types.KeyInfo, error) {
