@@ -1,8 +1,28 @@
 # PrivyQ Python SDK (`privyq`)
 
 The developer-facing interface to PrivyQ. It hides all cryptographic and gRPC
-detail behind three verbs, `protect()`, `access()`, `verify()`, so you think
-in terms of *business intent*, not primitives.
+detail behind intention-based verbs, so you think in terms of *business intent*,
+not primitives — you **describe policies** and let PrivyQ make the decisions.
+
+## The verbs (v2)
+
+| Verb | Does |
+|------|------|
+| `protect(data, policy)` | Encrypt + embed the policy in the ciphertext |
+| `access(protected, identity)` | Authorize against the policy, then reveal — or deny with a reason |
+| `check(identity, resource)` → `Decision` | The pure decision (no data revealed) — the PDP verb |
+| `explain(decision)` | Human-readable reason (also `decision.reason`) |
+| `seal(data)` → `Sealed` · `verify(sealed, data=…)` | Post-quantum signatures |
+| `verify(receipt)` | Verify audit evidence |
+| `evidence.log/of/export(fmt)` | Query + export (json/csv/pdf) the audit trail |
+| `generate_key/get_key/rotate_key/revoke_key` | Key lifecycle |
+
+```python
+# Decide without revealing anything (great for gating any action):
+decision = privyq.check({"role": "nurse"}, protected)
+if not decision.allowed:
+    return http_403(privyq.explain(decision))   # "role condition not met (needed doctor)"
+```
 
 ```python
 import privyq
