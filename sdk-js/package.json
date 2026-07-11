@@ -1,6 +1,6 @@
 {
   "name": "@privyq/sdk",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "First-class TypeScript/JavaScript SDK for PrivyQ — post-quantum, policy-governed encryption with verifiable evidence. Talks to the PrivyQ gateway over REST; works in Node and the browser.",
   "license": "MIT",
   "type": "module",

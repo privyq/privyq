@@ -36,7 +36,7 @@ from .models import AccessResult, ProtectedData, Receipt, VerificationResult
 from .protect import protect
 from .verify import verify
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
 __all__ = [
     "protect",
