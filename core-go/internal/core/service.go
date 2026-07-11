@@ -36,10 +36,22 @@ type ErrPolicyViolation struct {
 
 func (e *ErrPolicyViolation) Error() string { return "policy violation: " + e.Reason }
 
+// MetaStore persists the auxiliary data model — users, named policies, and
+// resource records (ARCH §12) — populated as a side effect of protect/access so
+// the tables reflect real activity (v2: closes gap B5, where these tables existed
+// but were never read or written). Optional: nil means "don't persist" (the
+// in-memory/dev path); Postgres provides a live implementation.
+type MetaStore interface {
+	UpsertUser(id, role, department, organization string) error
+	UpsertPolicy(policyHash string, policy types.Policy, createdBy string) error
+	UpsertResource(resourceID, resourceHash, policyHash, owner string) error
+}
+
 // Service is the core orchestrator.
 type Service struct {
 	Keys     *keymanager.Manager
 	Evidence audit.EvidenceStore
+	Meta     MetaStore // optional; persists users/policies/resources when set
 	version  string
 
 	chainMu sync.Mutex // serializes evidence generation to keep the chain ordered
@@ -136,6 +148,22 @@ func (s *Service) Protect(plaintext []byte, policy types.Policy, algorithm, keyI
 	if err != nil {
 		return nil, types.Evidence{}, err
 	}
+
+	// Persist the auxiliary data model when a MetaStore is wired (closes B5).
+	if s.Meta != nil {
+		ph := PolicyHash(policy)
+		if actor.UserID != "" {
+			if err := s.Meta.UpsertUser(actor.UserID, actor.Role, actor.Department, actor.Organization); err != nil {
+				return nil, types.Evidence{}, err
+			}
+		}
+		if err := s.Meta.UpsertPolicy(ph, policy, actor.UserID); err != nil {
+			return nil, types.Evidence{}, err
+		}
+		if err := s.Meta.UpsertResource(resourceID, resourceHash, ph, actor.UserID); err != nil {
+			return nil, types.Evidence{}, err
+		}
+	}
 	return envelope, ev, nil
 }
 
@@ -157,6 +185,11 @@ func (s *Service) Access(protectedData []byte, identity types.Identity, ctx type
 	})
 	if err != nil {
 		return nil, types.Evidence{}, err
+	}
+
+	// Record the requesting user (best-effort; never fail an access on this).
+	if s.Meta != nil && identity.UserID != "" {
+		_ = s.Meta.UpsertUser(identity.UserID, identity.Role, identity.Department, identity.Organization)
 	}
 
 	if !eval.Granted() {

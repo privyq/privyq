@@ -49,6 +49,41 @@ func (p *Postgres) Keys() keymanager.KeyStorage { return &pgKeyStore{p.pool} }
 // Evidence returns the EvidenceStore view.
 func (p *Postgres) Evidence() audit.EvidenceStore { return &pgEvidenceStore{p.pool} }
 
+// Meta returns the auxiliary data-model store (users, policies, resources).
+func (p *Postgres) Meta() *pgMeta { return &pgMeta{p.pool} }
+
+type pgMeta struct{ pool *pgxpool.Pool }
+
+func (m *pgMeta) UpsertUser(id, role, department, organization string) error {
+	_, err := m.pool.Exec(context.Background(), `
+		INSERT INTO users (id, username, role, department, organization)
+		VALUES ($1,$1,$2,$3,$4)
+		ON CONFLICT (id) DO UPDATE SET role=EXCLUDED.role, department=EXCLUDED.department, organization=EXCLUDED.organization`,
+		id, role, department, organization)
+	return err
+}
+
+func (m *pgMeta) UpsertPolicy(policyHash string, policy types.Policy, createdBy string) error {
+	body, err := json.Marshal(policy)
+	if err != nil {
+		return err
+	}
+	_, err = m.pool.Exec(context.Background(), `
+		INSERT INTO policies (policy_hash, policy_json, created_by)
+		VALUES ($1,$2,$3) ON CONFLICT (policy_hash) DO NOTHING`,
+		policyHash, body, createdBy)
+	return err
+}
+
+func (m *pgMeta) UpsertResource(resourceID, resourceHash, policyHash, owner string) error {
+	_, err := m.pool.Exec(context.Background(), `
+		INSERT INTO resources (id, resource_hash, policy_hash, owner)
+		VALUES ($1,$2,$3,$4)
+		ON CONFLICT (id) DO UPDATE SET resource_hash=EXCLUDED.resource_hash, policy_hash=EXCLUDED.policy_hash`,
+		resourceID, resourceHash, policyHash, owner)
+	return err
+}
+
 // ─────────────────────────── key store ───────────────────────────
 
 type pgKeyStore struct{ pool *pgxpool.Pool }

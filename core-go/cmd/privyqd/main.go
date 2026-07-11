@@ -45,6 +45,7 @@ func main() {
 	// implement the same interface and slot in here.
 	var store keymanager.KeyStorage
 	var evidence audit.EvidenceStore = audit.NewMemoryEvidenceStore()
+	var meta core.MetaStore
 
 	// When DB_URL is set, use PostgreSQL for both keys and the evidence chain
 	// so they survive restarts (ARCH §12). Otherwise fall back to local/memory.
@@ -56,6 +57,7 @@ func main() {
 		defer pg.Close()
 		store = pg.Keys()
 		evidence = pg.Evidence()
+		meta = pg.Meta()
 		log.Printf("privyqd: using PostgreSQL persistence")
 	} else {
 		var err error
@@ -75,6 +77,7 @@ func main() {
 	}
 
 	svc := core.New(keymanager.New(store), evidence, version)
+	svc.Meta = meta // nil for local/memory; Postgres persists users/policies/resources
 
 	// Retention sweep (ARCH §12.3): daily, expire keys past their ExpiresAt and
 	// report archival candidates. Configurable via RETENTION_DAYS (default ~7y).

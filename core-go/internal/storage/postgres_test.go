@@ -107,6 +107,48 @@ func TestAuditEventsPopulated(t *testing.T) {
 	}
 }
 
+// users/policies/resources are written on protect (v2, closes gap B5).
+func TestMetaTablesPopulated(t *testing.T) {
+	dsn := testDSN(t)
+	ctx := context.Background()
+	pg, err := New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pg.Close()
+
+	svc := core.New(keymanager.New(pg.Keys()), pg.Evidence(), "test")
+	svc.Meta = pg.Meta()
+	policy := types.Policy{Combination: "all", Conditions: []types.Condition{
+		{Type: "role", Operator: "equals", Values: []string{"doctor"}},
+	}}
+	if _, _, err := svc.Protect([]byte("x"), policy, "", "", "res_meta1", types.Identity{UserID: "dr_meta", Role: "doctor", Department: "cardiology"}); err != nil {
+		t.Fatal(err)
+	}
+
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+
+	var uRole, rid, phash string
+	if err := pool.QueryRow(ctx, `SELECT role FROM users WHERE id=$1`, "dr_meta").Scan(&uRole); err != nil {
+		t.Fatalf("user not persisted: %v", err)
+	}
+	if uRole != "doctor" {
+		t.Fatalf("user role wrong: %q", uRole)
+	}
+	if err := pool.QueryRow(ctx, `SELECT id, policy_hash FROM resources WHERE id=$1`, "res_meta1").Scan(&rid, &phash); err != nil {
+		t.Fatalf("resource not persisted: %v", err)
+	}
+	// The resource's policy_hash must reference a real policies row.
+	var cnt int
+	if err := pool.QueryRow(ctx, `SELECT count(*) FROM policies WHERE policy_hash=$1`, phash).Scan(&cnt); err != nil || cnt != 1 {
+		t.Fatalf("policy not persisted / FK broken: cnt=%d err=%v", cnt, err)
+	}
+}
+
 func mustJSON(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)
