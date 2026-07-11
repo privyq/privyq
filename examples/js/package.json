@@ -1,0 +1,6 @@
+{
+  "name": "privyq-js-examples",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@privyq/sdk": "file:../../sdk-js" }
+}
