@@ -66,3 +66,20 @@ CREATE TABLE IF NOT EXISTS evidence_log (
 CREATE INDEX IF NOT EXISTS idx_evidence_resource ON evidence_log (resource_hash);
 CREATE INDEX IF NOT EXISTS idx_evidence_actor ON evidence_log (actor_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_time ON evidence_log (timestamp);
+
+-- audit_events: a queryable, denormalised index of access events (ARCH §12.1).
+-- The authoritative record is the signed evidence_log chain; this table makes
+-- "who did what to which resource, and was it allowed" cheap to query and report.
+-- (v2: closes gap B4 — the table was specified but never created.)
+CREATE TABLE IF NOT EXISTS audit_events (
+    id          BIGSERIAL PRIMARY KEY,
+    resource_id TEXT,
+    actor_id    TEXT,
+    action      TEXT NOT NULL,                -- protect | access | check
+    status      TEXT NOT NULL,                -- granted | denied
+    evidence_id TEXT NOT NULL,                -- links back to evidence_log
+    timestamp   TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_events_resource ON audit_events (resource_id);
+CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events (actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_events_time ON audit_events (timestamp);

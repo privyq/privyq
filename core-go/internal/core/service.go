@@ -288,6 +288,18 @@ func (s *Service) GenerateEvidence(p audit.GenerateParams) (types.Evidence, erro
 	return s.appendEvidence(p)
 }
 
+// ExportEvidence renders the (filtered) evidence chain for compliance reporting
+// in json | csv | pdf, tagged with whether the whole chain still verifies.
+func (s *Service) ExportEvidence(f audit.Filter, format string) (content []byte, contentType, filename string, err error) {
+	entries, err := s.Evidence.List(f)
+	if err != nil {
+		return nil, "", "", err
+	}
+	all, _ := s.Evidence.All()
+	chainOK, _ := audit.VerifyChain(all, s.publicKeyLookup())
+	return audit.Export(entries, format, chainOK)
+}
+
 // VerifyEvidence checks an entry's signature and (against the stored chain) its
 // linkage; optionally re-evaluates the embedded policy.
 func (s *Service) VerifyEvidence(ev types.Evidence, reevaluate bool) audit.VerifyResult {

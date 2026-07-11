@@ -162,6 +162,17 @@ func (s *Server) GetEvidenceLog(_ context.Context, r *pb.GetEvidenceLogRequest) 
 	return &pb.GetEvidenceLogResponse{Entries: out, Total: int32(total), Page: r.Page, PageSize: r.PageSize, ChainVerified: chainOK}, nil
 }
 
+// ExportEvidence renders the evidence trail as json/csv/pdf (v2 compliance export).
+func (s *Server) ExportEvidence(_ context.Context, r *pb.ExportEvidenceRequest) (*pb.ExportEvidenceResponse, error) {
+	content, ct, fn, err := s.svc.ExportEvidence(audit.Filter{
+		ResourceID: r.ResourceId, ActorID: r.ActorId, StartTime: r.StartTime, EndTime: r.EndTime,
+	}, r.Format)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	return &pb.ExportEvidenceResponse{Content: content, ContentType: ct, Filename: fn}, nil
+}
+
 func (s *Server) ListKeys(_ context.Context, _ *pb.ListKeysRequest) (*pb.ListKeysResponse, error) {
 	infos, err := s.svc.ListKeys()
 	if err != nil {

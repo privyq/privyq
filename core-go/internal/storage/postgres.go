@@ -148,13 +148,28 @@ func (s *pgEvidenceStore) Append(ev types.Evidence) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	_, err = s.pool.Exec(ctx, `
+	// The signed chain row and its denormalised audit_events index are written in
+	// one transaction so they can never drift apart.
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, `
 		INSERT INTO evidence_log (position, evidence_id, timestamp, actor_id, resource_id, resource_hash,
 		                          operation, result, signature, public_key_id, parent_hash, entry_hash, body)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
 		ev.Position, ev.EvidenceID, parseTime(ev.Timestamp), ev.Actor.UserID, ev.ResourceID, ev.ResourceHash,
-		ev.Operation, ev.Result, ev.Signature, ev.PublicKeyID, ev.ParentHash, entryHash, body)
-	return ev.Position, err
+		ev.Operation, ev.Result, ev.Signature, ev.PublicKeyID, ev.ParentHash, entryHash, body); err != nil {
+		return 0, err
+	}
+	if _, err = tx.Exec(ctx, `
+		INSERT INTO audit_events (resource_id, actor_id, action, status, evidence_id, timestamp)
+		VALUES ($1,$2,$3,$4,$5,$6)`,
+		ev.ResourceID, ev.Actor.UserID, ev.Operation, ev.Result, ev.EvidenceID, parseTime(ev.Timestamp)); err != nil {
+		return 0, err
+	}
+	return ev.Position, tx.Commit(ctx)
 }
 
 func (s *pgEvidenceStore) LastHash() (string, error) {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/privyq/privyq/core-go/internal/audit"
 	"github.com/privyq/privyq/core-go/internal/core"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
@@ -62,6 +63,47 @@ func TestPostgresPersistenceSurvivesRestart(t *testing.T) {
 	}
 	if len(entries) == 0 {
 		t.Fatal("no entries after restart")
+	}
+}
+
+// audit_events is written alongside the signed chain (v2, closes gap B4).
+func TestAuditEventsPopulated(t *testing.T) {
+	dsn := testDSN(t)
+	ctx := context.Background()
+	pg, err := New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pg.Close()
+
+	svc := core.New(keymanager.New(pg.Keys()), pg.Evidence(), "test")
+	policy := types.Policy{Combination: "all", Conditions: []types.Condition{
+		{Type: "role", Operator: "equals", Values: []string{"doctor"}},
+	}}
+	env, _, err := svc.Protect([]byte("x"), policy, "", "", "res_ae", types.Identity{UserID: "dr", Role: "doctor"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := mustJSON(t, env)
+	if _, _, err := svc.Access(raw, types.Identity{Role: "nurse"}, types.Context{}); err == nil {
+		t.Fatal("nurse access should have been denied")
+	}
+
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+	var granted, denied int
+	err = pool.QueryRow(ctx,
+		`SELECT count(*) FILTER (WHERE status='granted'), count(*) FILTER (WHERE status='denied')
+		 FROM audit_events WHERE resource_id=$1`, "res_ae").Scan(&granted, &denied)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// protect (granted) + denied access → both statuses present, linked to evidence.
+	if granted < 1 || denied < 1 {
+		t.Fatalf("audit_events should record both outcomes, got granted=%d denied=%d", granted, denied)
 	}
 }
 
