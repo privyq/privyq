@@ -1,0 +1,6 @@
+# Integration tests: a real Postgres via testcontainers + the built core + the SDK.
+# Run: pip install -e sdk-python && pip install -r tests/integration/requirements.txt
+#      pytest tests/integration/
+testcontainers[postgres]>=4.0
+grpcio>=1.68
+pytest>=8.0
