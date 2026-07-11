@@ -2,13 +2,14 @@
 
 # PrivyQ
 
-**Lock it. Rule it. Prove it.**
+**Describe your access policies. Let PrivyQ enforce them.**
 
-Post-quantum encryption that carries its own access rules and hands you
-tamper-proof receipts for every access.
+The trust-infrastructure SDK developers rely on to make security decisions
+correctly — policy/attribute-based access control, policy-bound post-quantum
+encryption, and tamper-evident audit, behind a few intention-based verbs.
 
+[v2 Blueprint](docs/v2_blueprint.md) ·
 [Architecture](docs/SYSTEM_ARCHITECTURE.md) ·
-[Blueprint](docs/blueprint.md) ·
 [License](LICENSE)
 
 </div>
@@ -17,17 +18,30 @@ tamper-proof receipts for every access.
 
 ## Why PrivyQ
 
-Encryption keeps data confidential, but it says nothing about *who* may open it,
-*under what conditions*, or *whether that access was ever allowed*. And the
-public-key cryptography most systems rely on today will not survive a
-cryptographically relevant quantum computer.
+Every non-trivial app re-implements authorization inline — `if role…`, `if
+department…`, `if owner…`, `if expiry…` — smeared across dozens of endpoints and
+services, inconsistent and unauditable. Most breaches are broken governance, not
+broken crypto.
 
-PrivyQ closes both gaps at once. It is a developer-centric framework that binds a
-**privacy policy to the ciphertext itself**, enforces that policy **before**
-decryption using **post-quantum cryptography**, and records every access as
-**cryptographically verifiable evidence** that cannot be altered undetected.
+PrivyQ lets you **describe the policy once** and stop hand-writing the
+authorization engine that enforces it. You still own your business rules; PrivyQ
+owns the decision — evaluating **attributes** (not just roles: purpose, shift,
+jurisdiction, approval-limit, wallet, …) so it is strictly more expressive than
+RBAC. And because it *also* binds the policy to the ciphertext with
+**post-quantum encryption** and records every decision as **verifiable evidence**,
+one layer answers *who can access this?*, *should they?*, and *prove it.*
 
-Three contributions, one framework:
+```python
+decision = privyq.check(user, invoice)     # no data revealed — just the decision
+# Decision(allowed=False, reason="Role 'Reviewer' cannot approve above ₦5,000,000.")
+record = privyq.access(invoice, user)      # authorized + revealed, or denied with a reason
+```
+
+> **v2** repositions PrivyQ from a post-quantum thesis into a trust-infrastructure
+> product. The authoritative spec is **[docs/v2_blueprint.md](docs/v2_blueprint.md)**;
+> the v1 thesis line is preserved on the `HOD` branch.
+
+Its foundational contributions, still true:
 
 1. **Policy-Governed Post-Quantum Encryption** — the rules travel *inside* the
    encrypted data (role, department, purpose, classification, expiry,
