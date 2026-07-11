@@ -246,6 +246,43 @@ func (s *Service) Verify(message []byte, signatureB64, publicKeyID string) (bool
 	return scheme.Verify(pub, message, sig), nil
 }
 
+// Seal produces a self-describing post-quantum signature over data — the v2
+// `seal()` verb. If keyID is empty and algorithm is set, a signing key of that
+// algorithm is generated; otherwise the default signing key is used.
+func (s *Service) Seal(data []byte, keyID, algorithm string) (types.Sealed, error) {
+	if keyID == "" && algorithm != "" {
+		info, err := s.Keys.Generate(algorithm, types.KeySigning, "", "", nil)
+		if err != nil {
+			return types.Sealed{}, err
+		}
+		keyID = info.KeyID
+	}
+	sigB64, usedKey, algo, err := s.Sign(data, keyID)
+	if err != nil {
+		return types.Sealed{}, err
+	}
+	sum := sha256.Sum256(data)
+	return types.Sealed{
+		DataHash:  hex.EncodeToString(sum[:]),
+		Signature: sigB64,
+		Algorithm: algo,
+		KeyID:     usedKey,
+		SealedAt:  time.Now().UTC().Format(time.RFC3339),
+	}, nil
+}
+
+// VerifySeal checks a Sealed signature against data: the data hash must match (when
+// present) and the signature must verify under the sealing key.
+func (s *Service) VerifySeal(data []byte, sealed types.Sealed) (bool, error) {
+	if sealed.DataHash != "" {
+		sum := sha256.Sum256(data)
+		if hex.EncodeToString(sum[:]) != sealed.DataHash {
+			return false, nil
+		}
+	}
+	return s.Verify(data, sealed.Signature, sealed.KeyID)
+}
+
 // GenerateEvidence mints and stores a standalone evidence entry.
 func (s *Service) GenerateEvidence(p audit.GenerateParams) (types.Evidence, error) {
 	return s.appendEvidence(p)

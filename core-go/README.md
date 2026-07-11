@@ -14,22 +14,45 @@ It implements the three PrivyQ contributions at their lowest level:
 
 ## Cryptographic backend
 
-Post-quantum primitives come from [Cloudflare CIRCL](https://github.com/cloudflare/circl),
-a pure-Go, NIST-standardized implementation of ML-KEM (Kyber) and ML-DSA (Dilithium).
-This means the core **builds and runs with no C dependencies or CGO**.
+PrivyQ has two pluggable PQC backends, selected at runtime by `PQC_BACKEND`:
 
-The `kem.Scheme` and `signatures.Scheme` interfaces (`internal/kem`, `internal/signatures`)
-abstract the provider, so a [liboqs](https://github.com/open-quantum-safe/liboqs)/CGO
-backend — the option named in the design docs — can be added later without changing any
-caller. See the project docs for the rationale.
+- **`circl` (default).** Post-quantum primitives from
+  [Cloudflare CIRCL](https://github.com/cloudflare/circl) — a pure-Go, NIST-standardized
+  implementation of ML-KEM (Kyber), ML-DSA (Dilithium), and SLH-DSA (SPHINCS+). The default
+  build **has no C dependencies or CGO** — `go build ./...` just works. This is what a stock
+  container ships with.
+- **`liboqs` (optional, CGO).** The [Open Quantum Safe](https://github.com/open-quantum-safe/liboqs)
+  reference library, compiled in only with `-tags liboqs`. It adds **Falcon (FN-DSA)** — which
+  CIRCL does not provide — and gives reference-library parity. Selecting `PQC_BACKEND=liboqs`
+  in a build that did not compile it in fails with a clear error rather than falling back.
+
+The `kem.Scheme` / `signatures.Scheme` interfaces and a small backend registry
+(`internal/kem`, `internal/signatures`) mean callers never know which backend answered.
+
+> **Honesty note:** earlier design docs described liboqs as *the* backend. In reality the
+> default is CIRCL (the standardized ML-KEM/ML-DSA/SLH-DSA); liboqs is opt-in and the only
+> way to get Falcon. Both are documented here as they actually are.
+
+### Building/running with liboqs
+
+```bash
+# install liboqs so pkg-config can find it (any prefix works)
+#   e.g. cmake -S liboqs -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$HOME/.local
+#        cmake --build build --target install
+export PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig
+export LD_LIBRARY_PATH=$HOME/.local/lib          # so the .so loads at runtime
+go build -tags liboqs ./...
+go test  -tags liboqs ./...                       # exercises Falcon + ML-KEM via liboqs
+PQC_BACKEND=liboqs ./privyqd                       # run the daemon on the liboqs backend
+```
 
 ## Layout
 
 ```
 cmd/privyqd/        daemon entrypoint (gRPC server, env-driven config)
 internal/
-  kem/              Kyber KEM (ML-KEM) behind the Scheme interface
-  signatures/       Dilithium (ML-DSA); Falcon & SPHINCS+ reachable via the registry
+  kem/              ML-KEM (Kyber) — circl + optional liboqs backends
+  signatures/       ML-DSA (Dilithium) + SLH-DSA (SPHINCS+); Falcon via the liboqs backend
   encryption/       hybrid encryption: KEM-encapsulated AES-256-GCM
   policies/         the Policy Decision Engine — condition registry + operators
   audit/            evidence generation, hash-chaining, verification, chain store

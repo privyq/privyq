@@ -124,6 +124,37 @@ func TestCheckHandler(t *testing.T) {
 	}
 }
 
+func TestSealVerifyHandler(t *testing.T) {
+	s := newTestServer()
+	ctx := context.Background()
+	data := []byte("discharge summary — signed and verifiable")
+
+	sealed, err := s.Seal(ctx, &pb.SealRequest{Data: data})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sealed.Sealed.Signature == "" || sealed.Sealed.DataHash == "" || sealed.Sealed.KeyId == "" || sealed.Sealed.Algorithm == "" {
+		t.Fatalf("sealed should be fully populated: %+v", sealed.Sealed)
+	}
+
+	ok, err := s.VerifySeal(ctx, &pb.VerifySealRequest{Data: data, Sealed: sealed.Sealed})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok.Valid {
+		t.Fatalf("a valid seal must verify: %s", ok.Detail)
+	}
+
+	// Tampered data must not verify (data-hash mismatch).
+	bad, err := s.VerifySeal(ctx, &pb.VerifySealRequest{Data: []byte("tampered"), Sealed: sealed.Sealed})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bad.Valid {
+		t.Fatal("tampered data must not verify against the seal")
+	}
+}
+
 func TestConvertRoundTripThroughProtect(t *testing.T) {
 	// Drives policy/identity/evidence converters in both directions.
 	s := newTestServer()

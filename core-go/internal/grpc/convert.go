@@ -104,6 +104,17 @@ func policyToPB(p types.Policy) *pb.Policy {
 	}
 }
 
+func sealedToPB(s types.Sealed) *pb.Sealed {
+	return &pb.Sealed{DataHash: s.DataHash, Signature: s.Signature, Algorithm: s.Algorithm, KeyId: s.KeyID, SealedAt: s.SealedAt}
+}
+
+func sealedFromPB(s *pb.Sealed) types.Sealed {
+	if s == nil {
+		return types.Sealed{}
+	}
+	return types.Sealed{DataHash: s.DataHash, Signature: s.Signature, Algorithm: s.Algorithm, KeyID: s.KeyId, SealedAt: s.SealedAt}
+}
+
 func decisionToPB(d types.Decision) *pb.Decision {
 	crs := make([]*pb.ConditionResult, 0, len(d.EvaluatedConditions))
 	for _, c := range d.EvaluatedConditions {

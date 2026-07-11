@@ -115,6 +115,17 @@ type Decision struct {
 	EvaluatedConditions []ConditionResult `json:"evaluated_conditions"`
 }
 
+// Sealed is a post-quantum digital signature over arbitrary data, produced by the
+// v2 `seal()` verb (v2 blueprint §5). It is self-describing so `verify()` needs no
+// extra arguments.
+type Sealed struct {
+	DataHash  string `json:"data_hash"` // SHA-256 of the data (hex)
+	Signature string `json:"signature"` // base64 signature
+	Algorithm string `json:"algorithm"` // e.g. dilithium_3, falcon_512 (liboqs)
+	KeyID     string `json:"key_id"`    // signing key id
+	SealedAt  string `json:"sealed_at"` // RFC3339
+}
+
 // AsEvaluation projects a Decision onto the v1 PolicyEvaluation shape so existing
 // callers, audit records, and the EvaluatePolicy RPC keep working unchanged.
 func (d Decision) AsEvaluation() PolicyEvaluation {

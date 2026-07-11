@@ -106,6 +106,28 @@ func (s *Server) Verify(_ context.Context, r *pb.VerifyRequest) (*pb.VerifyRespo
 	return &pb.VerifyResponse{Valid: ok}, nil
 }
 
+// Seal is the v2 `seal()` verb — a self-describing post-quantum signature.
+func (s *Server) Seal(_ context.Context, r *pb.SealRequest) (*pb.SealResponse, error) {
+	sealed, err := s.svc.Seal(r.Data, r.KeyId, r.Algorithm)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return &pb.SealResponse{Sealed: sealedToPB(sealed)}, nil
+}
+
+// VerifySeal checks a Sealed signature (dispatched to by the SDK's verify()).
+func (s *Server) VerifySeal(_ context.Context, r *pb.VerifySealRequest) (*pb.VerifySealResponse, error) {
+	ok, err := s.svc.VerifySeal(r.Data, sealedFromPB(r.Sealed))
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	detail := "signature valid"
+	if !ok {
+		detail = "signature invalid or data hash mismatch"
+	}
+	return &pb.VerifySealResponse{Valid: ok, Detail: detail}, nil
+}
+
 func (s *Server) GenerateEvidence(_ context.Context, r *pb.GenerateEvidenceRequest) (*pb.GenerateEvidenceResponse, error) {
 	ev, err := s.svc.GenerateEvidence(audit.GenerateParams{
 		Actor: identityFromPB(r.Actor), ResourceID: r.ResourceId, ResourceHash: r.ResourceHash,

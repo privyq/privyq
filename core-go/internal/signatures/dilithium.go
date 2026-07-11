@@ -1,11 +1,9 @@
-// Package signatures provides post-quantum digital signatures.
-//
-// Like package kem, the Scheme interface abstracts the provider (ARCH §25.2).
-// The default backend is CRYSTALS-Dilithium (ML-DSA) from Cloudflare CIRCL.
-// SPHINCS+ (now standardized as SLH-DSA) is also available. Falcon (FN-DSA) is
-// not in the CIRCL build used here; it can be added via a liboqs backend that
-// implements the same Scheme interface.
 package signatures
+
+// The default, pure-Go signature backend: CRYSTALS-Dilithium (ML-DSA) and
+// SPHINCS+ (SLH-DSA) from Cloudflare CIRCL. No CGO. Falcon (FN-DSA) is NOT in
+// this backend — it is provided by the optional liboqs backend (see liboqs.go,
+// built with `-tags liboqs`).
 
 import (
 	"fmt"
@@ -14,15 +12,10 @@ import (
 	"github.com/cloudflare/circl/sign/schemes"
 )
 
-// Scheme is a post-quantum signature scheme with opaque byte-slice keys.
-type Scheme interface {
-	Name() string
-	GenerateKeyPair() (publicKey, privateKey []byte, err error)
-	Sign(privateKey, message []byte) ([]byte, error)
-	Verify(publicKey, message, signature []byte) bool
-}
+func init() { registerBackend("circl", circlBackend{}) }
 
-var algoMap = map[string]string{
+// circlAlgoMap maps PrivyQ algorithm ids to CIRCL scheme names.
+var circlAlgoMap = map[string]string{
 	"dilithium_2":  "Dilithium2",
 	"dilithium_3":  "Dilithium3",
 	"dilithium_5":  "Dilithium5",
@@ -31,26 +24,26 @@ var algoMap = map[string]string{
 	"sphincs_256s": "SLH-DSA-SHA2-256s",
 }
 
-type circlScheme struct {
-	name string
-	sch  sign.Scheme
-}
+type circlBackend struct{}
 
-// New returns the signature Scheme for a PrivyQ algorithm id (e.g. "dilithium_3").
-func New(algorithm string) (Scheme, error) {
-	name, ok := algoMap[algorithm]
+func (circlBackend) Supported(algorithm string) bool { _, ok := circlAlgoMap[algorithm]; return ok }
+
+func (circlBackend) New(algorithm string) (Scheme, error) {
+	name, ok := circlAlgoMap[algorithm]
 	if !ok {
-		return nil, fmt.Errorf("signatures: unsupported algorithm %q", algorithm)
+		return nil, fmt.Errorf("signatures/circl: unsupported algorithm %q", algorithm)
 	}
 	sch := schemes.ByName(name)
 	if sch == nil {
-		return nil, fmt.Errorf("signatures: circl has no scheme %q", name)
+		return nil, fmt.Errorf("signatures/circl: no scheme %q", name)
 	}
 	return &circlScheme{name: algorithm, sch: sch}, nil
 }
 
-// Supported reports whether the algorithm id is a known signature scheme.
-func Supported(algorithm string) bool { _, ok := algoMap[algorithm]; return ok }
+type circlScheme struct {
+	name string
+	sch  sign.Scheme
+}
 
 func (c *circlScheme) Name() string { return c.name }
 
