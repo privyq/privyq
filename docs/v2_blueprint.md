@@ -29,7 +29,7 @@
 13. Compliance tooling
 14. Blockchain integration
 15. The Python SDK (v2)
-16. Language SDK roadmap
+16. The TypeScript / JavaScript SDK (v2)
 17. Gateway & Secure APIs (Policy-Decision-as-a-Service)
 18. Data model & persistence
 19. Deployment, scale & multi-tenancy
@@ -294,7 +294,7 @@ is made first-class.
              SDK (in-proc)               │  REST / gRPC  (Policy-Decision-as-a-Service)
         ┌────────────────────┐           ▼
         │  PrivyQ SDK        │   ┌──────────────────┐
-        │  (Python; JS/…)    │   │  FastAPI Gateway │  auth (API-key/JWT/OAuth2/mTLS),
+        │  (Python + JS/TS)  │   │  FastAPI Gateway │  auth (API-key/JWT/OAuth2/mTLS),
         │  protect/access/   │   │  + PDP endpoint  │  rate limit, tenancy, OpenAPI
         │  check/explain/…   │   └────────┬─────────┘
         └─────────┬──────────┘            │ gRPC (TLS/mTLS)
@@ -508,17 +508,58 @@ report   = evidence.export("pdf", resource_id=protected.resource_id)
 
 ---
 
-# 16. Language SDK roadmap
+# 16. The TypeScript / JavaScript SDK (v2)
 
-The Python SDK is the reference. To serve "everyone at the point where they are," v2 lays the
-groundwork for more SDKs (all thin wrappers over the same gRPC/REST contracts):
+**A first-class, full SDK — a peer of the Python SDK, not a stub or roadmap item.** It lives at
+`sdk-js/`, is authored in TypeScript, and ships compiled JavaScript + type declarations for both
+**Node and the browser**. It is the highest-leverage second SDK: it serves the frontend, the
+Web3 audience, and the enormous JS/TS backend ecosystem. It carries **the same Decision-verb
+vocabulary and feature set as Python** — no capability is Python-only.
 
-- **v2.0:** Python (reference), and a **TypeScript/JS** SDK (browser + Node) — highest-leverage
-  for the frontend and Web3 audiences.
-- **Roadmap (post-2.0):** Go client, Java, Rust, C#/.NET (BP §20.5). Ordered by demand.
+```ts
+import {
+  configure,
+  protect, access, check, explain,     // decisions
+  seal, verify,                        // signatures + verification
+  evidence,                            // evidence.of / .verify / .export / .log
+  generateKey, rotateKey, revokeKey, getKey,
+} from "@privyq/sdk";
 
-No SDK re-implements crypto or policy — they call the core. This keeps every language honest and
-consistent (the multi-service consistency argument, applied across languages).
+configure({ coreAddress: "localhost:50051", defaultAlgorithm: "kyber_768" });
+
+const protectedData = await protect(patientRecord, {
+  allow: { role: "doctor", hospital: "LUTH", purpose: "treatment",
+           shift: "active", expires: "24h" },
+});
+
+const decision = await check({ role: "nurse", hospital: "LUTH" }, protectedData);
+// Decision { allowed: false, reason: "…", failed: ["shift"], matched: ["role","hospital"] }
+
+const record  = await access(protectedData, { role: "doctor", hospital: "LUTH" },
+                             { purpose: "treatment" });
+const sealed  = await seal(dischargeSummary);
+const ok      = await verify(sealed);              // or verify(evidenceEntry)
+const report  = await evidence.export("pdf", { resourceId: protectedData.resourceId });
+```
+
+- **Transport:** talks to the gateway over REST by default (browser-safe), and to the core over
+  gRPC/gRPC-web where available (Node). Types are generated from the same OpenAPI/`.proto` — no
+  hand-written DTOs (mirrors the frontend's `openapi-typescript` rule in `CLAUDE.md`).
+- **Feature parity:** every verb, `Decision`/`Sealed`/`Evidence`/`VerificationResult` types,
+  obligations, wallet/DID identity helpers, and the exception hierarchy (`AccessDenied` carrying
+  `decision.reason`, etc.) match Python.
+- **Ergonomics:** idiomatic camelCase, Promises/async, tree-shakeable ESM + CJS builds,
+  `strict` TypeScript, zero crypto in the client (it calls the core — the honesty invariant).
+- **Packaging:** published to npm as `@privyq/sdk`; `sdk-js/README.md` to the `CLAUDE.md`
+  standard; ≥85% test coverage (Vitest), with runnable Node and browser quickstarts.
+- **Frontend:** the Next.js app consumes `@privyq/sdk` (or its generated client) rather than
+  hand-rolling fetch calls — the SDK is dogfooded by our own demo.
+
+## 16.1 Further language SDKs (roadmap, post-2.0)
+
+Go client, Java, Rust, C#/.NET (BP §20.5), ordered by demand. **No SDK re-implements crypto or
+policy — they all call the core.** This keeps every language honest and consistent (the
+multi-service consistency argument, applied across languages).
 
 ---
 
@@ -642,6 +683,28 @@ v2 explicitly closes the real gaps found in the v1 audit (see `IMPLEMENTATION_PL
 | C3 coverage ~82% vs 90/95% | Coverage brought to target | §21, §24 |
 | C4 demo-grade gateway auth | API-key store, OAuth2, mTLS | §17 |
 | Doc-accuracy `[x]` lies (retention/testcontainers) | Tracker corrected, real tests added | §24 |
+
+---
+
+# 23a. Examples & developer demonstrations
+
+Adoption lives or dies on examples. v2 ships a **broad, runnable example suite in both SDKs**
+that demonstrates **every verb** and each headline scenario, so a developer can copy-paste their
+way to working code.
+
+- **Location & parity:** `examples/python/` and `examples/js/` (extending today's four Python
+  examples). Every scenario exists in **both** languages so neither SDK looks second-class.
+- **Verb coverage:** at least one example each for `protect`, `access`, `check` (the
+  PDP/no-reveal path), `explain`, `seal`/`verify`, `evidence.of/verify/export`, obligations
+  (masking), wallet/DID identity, and multi-service `check` (one policy brain across services).
+- **Scenario coverage:** the canonical domains — **healthcare** (treatment vs. research with
+  masking), **banking** (approval-limit + break-glass), **AI infrastructure** (subscription/
+  credits gating), **legal** (delegation), **Web3** (wallet-authenticated access) — plus a
+  **compliance-report** walkthrough.
+- **Runnable & verified:** each example runs against a local core/gateway and is **exercised in
+  CI** (they are smoke tests, so a broken example fails the build — no rotted samples).
+- **Mirrored in the frontend:** the Next.js playground surfaces the same scenarios interactively,
+  showing `Decision` reasons, obligations, and the audit trail (see §9 / Part II V9).
 
 ---
 
