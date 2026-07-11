@@ -10,13 +10,21 @@ import type {
   AccessBody,
   AccessResult,
   AuditEntry,
+  CheckBody,
+  ComplianceReport,
+  Decision,
   EvaluateBody,
+  EvidenceExportFormat,
   EvidenceLog,
   EvaluationResult,
+  ExplainResult,
+  KeyInfo,
   KeyListResponse,
   ManagedKey,
   ProtectBody,
   ProtectResult,
+  SealBody,
+  SealResult,
   VerifyResult,
 } from "@/lib/live";
 
@@ -154,7 +162,89 @@ export const api = {
   policyEvaluate(body: EvaluateBody): Promise<EvaluationResult> {
     return request("/api/v1/policy/evaluate", { method: "POST", body });
   },
+
+  /* ── v2: Policy-Decision-as-a-Service & compliance (blueprint §5, §13, §17) ── */
+
+  /** The PDP decision — can this identity access this? No data revealed. */
+  check(body: CheckBody, token?: string): Promise<Decision> {
+    return request("/api/v1/check", { method: "POST", body, token });
+  },
+
+  /** Human-readable reason for a decision (great for 403 bodies / UX). */
+  explain(body: CheckBody, token?: string): Promise<ExplainResult> {
+    return request("/api/v1/explain", { method: "POST", body, token });
+  },
+
+  /** Post-quantum signature over base64 data (the v2 `seal()` verb). */
+  seal(body: SealBody, token?: string): Promise<SealResult> {
+    return request("/api/v1/seal", { method: "POST", body, token });
+  },
+
+  /** Public key info by id (closes v1 gap B6). */
+  getKey(keyId: string): Promise<KeyInfo> {
+    return request(`/api/v1/keys/${encodeURIComponent(keyId)}`);
+  },
+
+  /** Map the evidence trail onto GDPR/HIPAA/SOC2 controls. */
+  complianceReport(query?: {
+    framework?: string;
+    resource_id?: string;
+    actor_id?: string;
+    start_time?: string;
+    end_time?: string;
+  }): Promise<ComplianceReport> {
+    return request("/api/v1/compliance/report", { query });
+  },
 };
+
+/**
+ * Download the evidence trail as json | csv | pdf. The gateway streams the file
+ * with a `Content-Disposition`, so we fetch it as a blob and trigger a browser
+ * download client-side. Throws `CoreOfflineError` / `ApiError` like `request`.
+ */
+export async function downloadEvidenceExport(opts: {
+  format: EvidenceExportFormat;
+  resource_id?: string;
+  actor_id?: string;
+  start_time?: string;
+  end_time?: string;
+}): Promise<void> {
+  const url = new URL(`${API_BASE}/api/v1/evidence/export`);
+  for (const [k, v] of Object.entries(opts)) {
+    if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: controller.signal, cache: "no-store" });
+  } catch {
+    throw new CoreOfflineError();
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new ApiError(res.status, `Export failed with status ${res.status}`, safeJson(text));
+  }
+
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  const match = /filename="?([^"]+)"?/.exec(disposition);
+  const filename = match?.[1] ?? `privyq-evidence.${opts.format}`;
+
+  const objectUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(objectUrl);
+}
 
 /** Best-effort health probe: returns null when the core is offline. */
 export async function probeHealth() {

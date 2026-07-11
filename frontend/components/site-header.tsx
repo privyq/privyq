@@ -12,9 +12,12 @@ export const PYPI_URL = "https://pypi.org/project/privyq/";
 
 const APP_NAV = [
   { href: "/demo", label: "Dashboard" },
+  { href: "/explorer", label: "Decisions" },
   { href: "/records", label: "Records" },
   { href: "/audit", label: "Audit" },
+  { href: "/compliance", label: "Compliance" },
   { href: "/keys", label: "Keys" },
+  { href: "/wallet", label: "Wallet" },
   { href: "/playground", label: "Playground" },
 ];
 

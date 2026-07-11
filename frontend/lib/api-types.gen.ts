@@ -126,6 +126,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Key
+         * @description Get public key info by id (BP App B; closes v1 gap B6).
+         */
+        get: operations["get_key_api_v1_keys__key_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/keys/rotate/{key_id}": {
         parameters: {
             query?: never;
@@ -188,6 +208,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check
+         * @description The PDP decision — can this identity access this? No data revealed.
+         *
+         *     Any service can call this to enforce the same policies consistently.
+         */
+        post: operations["check_api_v1_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/explain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explain
+         * @description Human-readable reason for a decision (great for 403 bodies, debugging, UX).
+         */
+        post: operations["explain_api_v1_explain_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seal
+         * @description Post-quantum signature over data (the v2 seal() verb).
+         */
+        post: operations["seal_api_v1_seal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/evidence/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Evidence
+         * @description Export the evidence trail as json | csv | pdf for compliance.
+         */
+        get: operations["export_evidence_api_v1_evidence_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/compliance/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compliance Report
+         * @description Map the evidence trail onto GDPR/HIPAA/SOC2 controls.
+         */
+        get: operations["compliance_report_api_v1_compliance_report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -233,6 +355,68 @@ export interface components {
              */
             data: string;
             audit_evidence: components["schemas"]["EvidenceModel"];
+        };
+        /** CheckRequest */
+        CheckRequest: {
+            /** Identity */
+            identity: {
+                [key: string]: unknown;
+            };
+            /** Policy */
+            policy?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Protected Data
+             * @description base64 envelope (policy taken from it)
+             */
+            protected_data?: string | null;
+            /** Context */
+            context?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Emit Evidence
+             * @default false
+             */
+            emit_evidence: boolean;
+        };
+        /** DecisionResponse */
+        DecisionResponse: {
+            /**
+             * Allowed
+             * @default false
+             */
+            allowed: boolean;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+            /** Matched */
+            matched?: string[];
+            /** Failed */
+            failed?: string[];
+            /** Obligations */
+            obligations?: string[];
+            /**
+             * Policy Id
+             * @default
+             */
+            policy_id: string;
+            /**
+             * Evaluated At
+             * @default
+             */
+            evaluated_at: string;
+            /** Evaluated Conditions */
+            evaluated_conditions?: {
+                [key: string]: unknown;
+            }[];
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** EvidenceLogResponse */
         EvidenceLogResponse: {
@@ -325,6 +509,19 @@ export interface components {
             metadata?: {
                 [key: string]: string;
             };
+        };
+        /** ExplainResponse */
+        ExplainResponse: {
+            /**
+             * Allowed
+             * @default false
+             */
+            allowed: boolean;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -513,6 +710,52 @@ export interface components {
                 [key: string]: unknown;
             };
             evidence: components["schemas"]["EvidenceModel"];
+        };
+        /** SealRequest */
+        SealRequest: {
+            /**
+             * Data
+             * @description base64-encoded data to sign
+             */
+            data: string;
+            /**
+             * Key Id
+             * @default
+             */
+            key_id: string;
+            /**
+             * Algorithm
+             * @default
+             */
+            algorithm: string;
+        };
+        /** SealResponse */
+        SealResponse: {
+            /**
+             * Data Hash
+             * @default
+             */
+            data_hash: string;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+            /**
+             * Algorithm
+             * @default
+             */
+            algorithm: string;
+            /**
+             * Key Id
+             * @default
+             */
+            key_id: string;
+            /**
+             * Sealed At
+             * @default
+             */
+            sealed_at: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -774,6 +1017,40 @@ export interface operations {
             };
         };
     };
+    get_key_api_v1_keys__key_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     rotate_api_v1_keys_rotate__key_id__post: {
         parameters: {
             query?: never;
@@ -865,6 +1142,190 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PolicyEvaluationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_api_v1_check_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explain_api_v1_explain_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplainResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    seal_api_v1_seal_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SealResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_evidence_api_v1_evidence_export_get: {
+        parameters: {
+            query?: {
+                resource_id?: string;
+                actor_id?: string;
+                start_time?: string;
+                end_time?: string;
+                format?: string;
+            };
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compliance_report_api_v1_compliance_report_get: {
+        parameters: {
+            query?: {
+                framework?: string;
+                resource_id?: string;
+                actor_id?: string;
+                start_time?: string;
+                end_time?: string;
+            };
+            header?: {
+                "x-api-key"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -5,10 +5,11 @@ import { RecordsProvider } from "@/components/providers/records-provider";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "PrivyQ — Lock it. Rule it. Prove it.",
+  title: "PrivyQ — Describe access. Don't code it.",
   description:
-    "Post-quantum encryption that carries its own access rules and hands you " +
-    "tamper-proof receipts for every access. Open source, three lines of code.",
+    "The trust-infrastructure SDK: describe access policies instead of writing " +
+    "authorization code. PBAC/ABAC decisions you can explain, tamper-evident evidence " +
+    "for compliance, and post-quantum encryption as the floor. Open source.",
 };
 
 export default function RootLayout({

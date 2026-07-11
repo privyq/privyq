@@ -173,11 +173,13 @@ const OPERATORS = [
 
 const SDK_FUNCS = [
   ["configure(**opts)", "Set the core address, default algorithms, timeout and TLS."],
-  ["protect(data, policy, *, actor, key_id, algorithm)", "Encrypt data with an embedded access policy."],
-  ["access(protected, identity, *, context)", "Decrypt if the policy is satisfied; otherwise raise PolicyViolationError."],
-  ["verify(receipt)", "Verify a receipt's Dilithium signature and hash-chain linkage."],
-  ["evidence.log(*, resource_id, actor_id, ...)", "Retrieve audit receipts for a resource or actor."],
-  ["generate_key / rotate_key / revoke_key", "Post-quantum key lifecycle management."],
+  ["protect(data, policy, **opts)", "Encrypt data with an embedded access policy."],
+  ["check(identity, resource, *, purpose)", "The pure authorization decision — returns a Decision, reveals no data."],
+  ["access(protected, identity, *, purpose)", "Authorize against the policy then reveal — or raise AccessDenied with a reason."],
+  ["explain(decision)", "Render a human-readable reason for a decision (also decision.reason)."],
+  ["seal(data, key=None) / verify(x)", "Post-quantum signature over data; verify a Sealed signature or audit evidence."],
+  ["evidence.of / .verify / .export", "Audit trail for a resource, verify the chain, or export JSON/CSV/PDF."],
+  ["generate_key / rotate_key / revoke_key / get_key", "Post-quantum key lifecycle management."],
 ];
 
 const EXCEPTIONS = [
@@ -198,14 +200,19 @@ const ENV_VARS = [
 
 const ENDPOINTS = [
   ["POST", "/api/v1/protect", "Encrypt data with an embedded policy."],
-  ["POST", "/api/v1/access", "Decrypt when the identity satisfies the policy."],
-  ["POST", "/api/v1/verify", "Verify a receipt's signature and chain."],
+  ["POST", "/api/v1/access", "Authorize + reveal when the identity satisfies the policy."],
+  ["POST", "/api/v1/check", "The PDP decision — a Decision, no data revealed."],
+  ["POST", "/api/v1/explain", "Human-readable reason for a decision (great for 403 bodies)."],
+  ["POST", "/api/v1/seal", "Post-quantum signature over data (the seal() verb)."],
+  ["POST", "/api/v1/verify", "Verify a receipt's signature and chain, or a seal."],
   ["GET", "/api/v1/evidence/log", "Query the tamper-evident audit chain."],
+  ["GET", "/api/v1/evidence/export", "Export the evidence trail as json / csv / pdf."],
+  ["GET", "/api/v1/compliance/report", "Map the evidence onto GDPR / HIPAA / SOC2 controls."],
   ["GET", "/api/v1/keys", "List managed keys."],
+  ["GET", "/api/v1/keys/{id}", "Get public key info by id."],
   ["POST", "/api/v1/keys/generate", "Mint a new post-quantum key pair."],
   ["POST", "/api/v1/keys/rotate/{id}", "Rotate a key (successor minted, old retained)."],
   ["POST", "/api/v1/keys/revoke/{id}", "Revoke a key and cut off access."],
-  ["POST", "/api/v1/policy/evaluate", "Dry-run a policy against an identity (no I/O)."],
   ["GET", "/api/v1/health", "Liveness probe for the gateway and core."],
 ];
 
@@ -341,9 +348,9 @@ export default function DocsPage() {
       <PageHeading
         eyebrow="Documentation"
         title="Build with PrivyQ"
-        description="Policy-governed, post-quantum encryption in three verbs — protect, access, verify. Lock it. Rule it. Prove it."
+        description="Describe access policies instead of writing authorization code. PBAC/ABAC decisions you can explain, tamper-evident evidence, and post-quantum encryption as the floor."
       >
-        <Badge variant="blue">v1.0</Badge>
+        <Badge variant="blue">v2.0</Badge>
       </PageHeading>
 
       <div className="grid gap-10 lg:grid-cols-[220px_1fr]">
@@ -359,16 +366,17 @@ export default function DocsPage() {
             <SectionHeading id="overview" eyebrow="Start here" title="Overview" />
             <div className="flex flex-col gap-4 text-[.95rem] leading-relaxed text-ink-2">
               <p>
-                PrivyQ makes a piece of data carry its own rules. Instead of encrypting first and hoping some
-                separate system enforces who may read it, you attach the access policy at the moment of encryption —
-                so the rules travel with the ciphertext wherever it goes.
+                PrivyQ lets you <strong>describe access policies instead of writing authorization code</strong>. You
+                still own your business rules — roles, attributes, purpose — but you stop implementing and maintaining
+                the enforcement engine. PrivyQ evaluates <strong>attributes</strong>, not just roles (PBAC/ABAC), so
+                it is strictly more expressive than RBAC, and every decision explains itself.
               </p>
-              <p>It does exactly three things:</p>
+              <p>The core verbs — the whole cryptography stays inside the Go core:</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                  { verb: "protect", icon: Lock, desc: "Encrypt data and embed the access policy in the same call." },
-                  { verb: "access", icon: KeyRound, desc: "Decrypt only when the caller's identity satisfies the policy." },
-                  { verb: "verify", icon: ShieldCheck, desc: "Prove an access happened with a signed, tamper-evident receipt." },
+                  { verb: "protect", icon: Lock, desc: "Encrypt data and embed its access policy in one call." },
+                  { verb: "check", icon: ShieldCheck, desc: "Ask the PDP for a Decision — allowed/denied + reason. No data revealed." },
+                  { verb: "access", icon: KeyRound, desc: "Authorize against the policy, then reveal — or deny with a reason." },
                 ].map(({ verb, icon: Icon, desc }) => (
                   <Card key={verb} className="bg-white/70">
                     <CardContent className="flex flex-col gap-2 p-4">
@@ -384,8 +392,12 @@ export default function DocsPage() {
                 ))}
               </div>
               <p>
-                Every decision — granted or denied — is recorded as a SHA-256 hash-chained receipt, so you always have
-                cryptographic proof of who accessed what, when, and whether they were allowed to.
+                The full vocabulary adds <Code>explain</Code> (human reason for a decision), <Code>seal</Code>/
+                <Code>verify</Code> (post-quantum signatures), and <Code>evidence.of / verify / export</Code>. Every
+                decision — granted or denied — is recorded as a SHA-256 hash-chained, signed receipt, so you always
+                have cryptographic proof of who accessed what, when, and whether they were allowed to. See the{" "}
+                <Link href="/explorer">Decision Explorer</Link> and <Link href="/compliance">Compliance</Link> pages to
+                try it live.
               </p>
             </div>
           </section>
@@ -525,10 +537,24 @@ export default function DocsPage() {
                 </p>
               </div>
 
+              <div>
+                <h3 className="mb-2 font-display text-base font-bold">Beyond roles — the v2 additions</h3>
+                <p className="text-sm text-muted">
+                  A policy can condition on <strong>any</strong> attribute (PBAC/ABAC), not just the built-in
+                  registry — <Code>approval_limit</Code>, <Code>subscription</Code>, <Code>credits</Code>,{" "}
+                  <Code>emergency</Code>, a verified <Code>wallet</Code>. It can carry a <Code>deny</Code> block
+                  (deny overrides allow), a sandboxed <Code>custom_logic</Code> expression (e.g.{" "}
+                  <Code>role == &quot;manager&quot; and (amount &lt;= approval_limit or emergency)</Code>), and{" "}
+                  <Code>obligations</Code> to honour on a grant (<Code>mask:field</Code>, <Code>watermark</Code>,{" "}
+                  <Code>require_mfa</Code>, <Code>ttl:1h</Code>).
+                </p>
+              </div>
+
               <Callout tone="mint" icon={Play}>
-                Not sure a policy does what you think? The{" "}
-                <Link href="/playground">policy playground</Link> evaluates a policy against an identity against the
-                real core engine — no data is encrypted and nothing is logged.
+                Not sure a policy does what you think? The <Link href="/explorer">Decision Explorer</Link> runs real{" "}
+                <Code>check()</Code> calls against the core PDP — showing the reason, matched/failed conditions, and
+                obligations. The <Link href="/playground">policy playground</Link> dry-runs a structured policy with
+                no data encrypted and nothing logged.
               </Callout>
             </div>
           </section>

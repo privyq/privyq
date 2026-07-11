@@ -57,19 +57,19 @@ function Hero() {
     <section className="grid items-center gap-12 pt-6 md:pt-12 lg:grid-cols-[1.05fr_1fr]">
       <div className="animate-pop">
         <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 font-mono text-xs font-semibold text-muted shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-mint" /> Post-quantum encryption for developers
+          <span className="h-1.5 w-1.5 rounded-full bg-mint" /> The trust-infrastructure SDK
         </span>
         <h1 className="mt-6 font-display text-[2.75rem] font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-          Data that <span className="ink-hl">protects itself.</span>
+          Describe access. <span className="ink-hl">Don’t code it.</span>
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-          PrivyQ locks your data and the rules for opening it in one step. Only the right person,
-          for the right reason, can decrypt — and every attempt leaves a receipt that can’t be
-          forged or quietly erased. Quantum-safe, in three lines of code.
+          Stop scattering <code className="font-mono text-[0.95em]">if user.role != …</code> checks across every
+          service. Write the policy once — roles, attributes, purpose, conditions — and let PrivyQ make the
+          decision, explain it, and log tamper-evident proof. Post-quantum encryption is the floor.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link href="/demo" className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-base font-bold text-white shadow-ink transition-transform hover:-translate-y-0.5">
-            Try the live demo <ArrowRight className="h-5 w-5" />
+          <Link href="/explorer" className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-base font-bold text-white shadow-ink transition-transform hover:-translate-y-0.5">
+            Open the Decision Explorer <ArrowRight className="h-5 w-5" />
           </Link>
           <a href={GITHUB_URL} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 rounded-full border-[1.5px] border-line bg-white px-6 py-3.5 text-base font-bold text-ink transition-colors hover:border-ink">
             <Github className="h-5 w-5" /> Star on GitHub
@@ -129,7 +129,7 @@ function AccessDemo() {
       <Card className="overflow-hidden shadow-md">
         <div className="flex items-center gap-1.5 border-b border-line bg-tint px-4 py-2.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red/50" /><span className="h-2.5 w-2.5 rounded-full bg-amber/60" /><span className="h-2.5 w-2.5 rounded-full bg-mint/60" />
-          <span className="ml-2 font-mono text-xs text-muted">patient_001 · sealed</span>
+          <span className="ml-2 font-mono text-xs text-muted">check() · patient_001</span>
           <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-muted">live preview</span>
         </div>
         <CardContent className="flex flex-col gap-4 py-5">
@@ -179,7 +179,7 @@ function AccessDemo() {
           )}
         </CardContent>
       </Card>
-      <p className="mt-3 text-center text-xs text-muted">This is a live preview. <Link href="/demo" className="font-semibold text-blue hover:underline">Run the real thing →</Link></p>
+      <p className="mt-3 text-center text-xs text-muted">This is a simulated preview. <Link href="/explorer" className="font-semibold text-blue hover:underline">Run real decisions →</Link></p>
     </div>
   );
 }
@@ -188,9 +188,9 @@ function AccessDemo() {
 
 function Stats() {
   const items = [
-    ["< 1 ms", "every protect & access"],
-    ["3 verbs", "protect · access · verify"],
-    ["100%", "post-quantum key exchange"],
+    ["1 brain", "one policy, every service"],
+    ["PBAC/ABAC", "attributes, not just roles"],
+    ["< 1 ms", "explainable decision path"],
     ["MIT", "free & open source"],
   ];
   return (
@@ -214,13 +214,22 @@ function Problem() {
     <section className="mx-auto max-w-3xl text-center">
       <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.22em] text-blue">The gap</p>
       <h2 className="font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-[2.6rem]">
-        Encryption answers <span className="ink-hl">“is it secret?”</span>
+        Most breaches aren’t broken crypto. <span className="ink-hl">They’re broken governance.</span>
       </h2>
       <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">
-        It says nothing about <strong className="text-ink">who</strong> may open your data,{" "}
-        <strong className="text-ink">under what conditions</strong>, or how you{" "}
-        <strong className="text-ink">prove</strong> access followed the rules. And the crypto most
-        systems use today won’t survive a quantum computer. PrivyQ closes all three gaps at once.
+        Every service re-implements authorization inline — 50 endpoints × 20 roles × 10 permissions × N
+        microservices of <code className="font-mono text-[0.95em]">if</code> ladders that are inconsistent,
+        untested, and impossible to reason about globally.
+      </p>
+      <div className="mx-auto mt-6 max-w-lg overflow-x-auto rounded-xl border border-line bg-ink p-4 text-left font-mono text-[12px] leading-relaxed text-white/80">
+        <p><span className="text-red">if</span> user.role != <span className="text-mint">&quot;admin&quot;</span>: <span className="text-red">raise</span> PermissionDenied()</p>
+        <p><span className="text-red">if</span> doc.owner != user.id: <span className="text-red">raise</span> PermissionDenied()</p>
+        <p><span className="text-red">if</span> doc.department != user.department: <span className="text-red">raise</span> …</p>
+        <p><span className="text-red">if</span> now() &gt; expiry: <span className="text-red">raise</span> …</p>
+        <p className="text-white/30"># …smeared across the codebase, forever</p>
+      </div>
+      <p className="mx-auto mt-6 max-w-2xl text-lg text-muted">
+        You still own the business rules. You stop owning — and maintaining — the enforcement engine.
       </p>
     </section>
   );
@@ -231,14 +240,14 @@ function Problem() {
 function Features() {
   return (
     <section className="flex flex-col gap-16">
-      <FeatureRow icon={<Lock className="h-6 w-6" />} title="The rules live inside the data"
-        body="When you encrypt, you attach a policy — role, department, purpose, expiry. Those rules travel inside the ciphertext and are checked before anything unlocks. There’s no separate permissions table to misconfigure or bypass."
+      <FeatureRow icon={<Lock className="h-6 w-6" />} title="Describe policies, not authorization code"
+        body="Write the rule once — role, department, purpose, and any attribute you like (approval_limit, subscription, emergency). PrivyQ evaluates attributes, not just roles, so it’s strictly more expressive than RBAC. One policy brain answers every service the same way."
         visual={<PolicyVisual />} />
-      <FeatureRow reverse icon={<ScrollText className="h-6 w-6" />} title="Receipts you can actually trust"
-        body="Every access — allowed or denied — is signed and linked to the one before it. Edit an entry, delete one, or reorder them and verification fails. It’s evidence of compliance, not a log someone can quietly rewrite."
+      <FeatureRow reverse icon={<ScrollText className="h-6 w-6" />} title="Every decision explains itself"
+        body="check() returns a Decision: allowed or denied, a human reason, the conditions that matched and failed, and any obligations (mask a field, watermark, require MFA). A denial is never a silent 403. Every decision — granted or denied — is signed into a tamper-evident chain you can export for auditors."
         visual={<ChainVisual />} />
-      <FeatureRow icon={<ShieldCheck className="h-6 w-6" />} title="Safe against tomorrow’s computers"
-        body="A future quantum computer will break the RSA and elliptic-curve crypto most systems use today. PrivyQ uses the post-quantum algorithms NIST standardized — Kyber and Dilithium — so what you protect now stays private for decades."
+      <FeatureRow icon={<ShieldCheck className="h-6 w-6" />} title="Post-quantum is the floor, not the pitch"
+        body="Data is protected with the algorithms NIST standardized — ML-KEM (Kyber) and ML-DSA (Dilithium) — so it stays private even against a future quantum adversary. It’s the safety floor beneath the real product: the security decision."
         visual={<PqVisual />} />
     </section>
   );
@@ -300,15 +309,15 @@ function PqVisual() {
 /* ─────────────────────────────── HOW IT WORKS ─────────────────────────────── */
 
 const STEPS = [
-  { n: "01", icon: <Lock className="h-5 w-5" />, verb: "protect", line: "Encrypt data with a policy baked in.", code: 'protect(data, {"role": "doctor"})' },
-  { n: "02", icon: <KeyRound className="h-5 w-5" />, verb: "access", line: "Decrypt — only if the policy is met.", code: 'access(sealed, {"role": "doctor"})' },
-  { n: "03", icon: <FileCheck2 className="h-5 w-5" />, verb: "verify", line: "Prove a receipt is genuine.", code: "verify(receipt)  # → True" },
+  { n: "01", icon: <Lock className="h-5 w-5" />, verb: "protect", line: "Encrypt data with its policy embedded.", code: 'protect(data, {"role": "doctor"})' },
+  { n: "02", icon: <FileCheck2 className="h-5 w-5" />, verb: "check", line: "Ask the PDP — get a Decision, reveal nothing.", code: "d = check(user, invoice)\n# Decision(allowed=False, reason=…)" },
+  { n: "03", icon: <KeyRound className="h-5 w-5" />, verb: "access", line: "Authorize and reveal — or deny with a reason.", code: 'access(sealed, user, purpose="approval")' },
 ];
 
 function HowItWorks() {
   return (
     <section>
-      <SectionHead eyebrow="How it works" title="Three verbs. That’s the whole API." sub="No cryptography knowledge required — the hard parts stay inside the core." />
+      <SectionHead eyebrow="How it works" title="An intention-based vocabulary." sub="protect · access · check · explain · seal · verify · evidence — the verbs mean what you want, and the cryptography stays inside the core." />
       <div className="grid gap-4 md:grid-cols-3">
         {STEPS.map((s) => (
           <Card key={s.verb} className="h-full transition-transform hover:-translate-y-1">
@@ -319,7 +328,7 @@ function HowItWorks() {
               </div>
               <h3 className="font-mono text-lg font-bold text-blue">{s.verb}()</h3>
               <p className="text-sm text-muted">{s.line}</p>
-              <pre className="overflow-x-auto rounded-lg bg-tint px-3 py-2 font-mono text-[11px] text-ink-2">{s.code}</pre>
+              <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-tint px-3 py-2 font-mono text-[11px] text-ink-2">{s.code}</pre>
             </CardContent>
           </Card>
         ))}
@@ -333,12 +342,12 @@ function HowItWorks() {
 
 const CMP_ROWS: [string, number, number, number][] = [
   // 2 = yes, 1 = partial, 0 = no
-  ["Quantum-safe (post-quantum)", 0, 1, 2],
-  ["Access policy travels with the data", 0, 2, 2],
-  ["Policy enforced before decryption", 0, 2, 2],
-  ["Tamper-evident audit trail built in", 0, 0, 2],
-  ["No central attribute authority needed", 2, 0, 2],
-  ["Three-line developer API", 1, 0, 2],
+  ["Decides on attributes, not just roles", 1, 0, 2],
+  ["One policy brain across every service", 0, 1, 2],
+  ["Explainable decisions (reason, matched/failed)", 0, 0, 2],
+  ["Obligations — mask, watermark, MFA", 0, 0, 2],
+  ["Tamper-evident evidence for compliance", 0, 0, 2],
+  ["Post-quantum encryption at rest", 0, 0, 2],
 ];
 
 function Mark({ v }: { v: number }) {
@@ -350,15 +359,15 @@ function Mark({ v }: { v: number }) {
 function Comparison() {
   return (
     <section>
-      <SectionHead eyebrow="How it compares" title="More than encryption. More than access control." />
+      <SectionHead eyebrow="How it compares" title="Trust infrastructure, not another crypto library." />
       <Card className="overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-line">
                 <th className="px-4 py-4 text-left font-semibold text-muted">Capability</th>
-                <th className="px-4 py-4 text-center font-semibold text-muted">Classic<br /><span className="font-normal">AES / RSA</span></th>
-                <th className="px-4 py-4 text-center font-semibold text-muted">ABE<br /><span className="font-normal">attribute-based</span></th>
+                <th className="px-4 py-4 text-center font-semibold text-muted">Inline<br /><span className="font-normal">if-ladders</span></th>
+                <th className="px-4 py-4 text-center font-semibold text-muted">RBAC<br /><span className="font-normal">role library</span></th>
                 <th className="px-4 py-4 text-center font-bold text-blue">PrivyQ</th>
               </tr>
             </thead>
@@ -443,11 +452,11 @@ function OpenSource() {
 /* ─────────────────────────────── FAQ ─────────────────────────────── */
 
 const FAQS = [
-  ["What is post-quantum cryptography?", "It’s cryptography designed to resist attack by quantum computers. A future quantum computer could break RSA and elliptic-curve crypto; PrivyQ instead uses lattice-based algorithms (Kyber and Dilithium) that NIST standardized in 2024, which resist both classical and quantum attacks."],
-  ["Does PrivyQ replace TLS?", "No — it complements it. TLS protects data in transit between machines. PrivyQ protects data at rest and in use, and adds policy enforcement and a verifiable audit trail. You’d typically run both."],
-  ["What algorithms does it use?", "Hybrid encryption with ML-KEM (Kyber-768) for the key exchange and AES-256-GCM for the data, ML-DSA (Dilithium-3) signatures for the audit trail, and SHA-256 for the hash chain — all standardized and widely reviewed."],
-  ["How is the audit log tamper-proof?", "Every entry is digitally signed and stores the hash of the previous entry. Editing a field breaks its signature; deleting or reordering entries breaks the chain. Verification catches all of it, so the log is evidence, not just a record."],
-  ["Is it production-ready?", "The full stack runs end to end and the SDK is published on PyPI. It ships a development key store out of the box; for production you’d point it at a hardware security module or cloud KMS (the interface is built in)."],
+  ["Isn’t this just RBAC?", "No — it’s strictly more expressive. RBAC answers on roles alone; PrivyQ evaluates any attribute of the subject, resource, action/purpose, and environment (PBAC/ABAC). You can write “manager AND (amount ≤ approval_limit OR emergency)” without a new role for every case. Roles still exist; you just stop hand-coding the engine that enforces them."],
+  ["What is a Decision?", "Every check() returns a Decision: whether it’s allowed, a human-readable reason, the conditions that matched and failed, and any obligations to honour on a grant. A denial is never a silent 403 — you get an explanation you can log, debug, and show a user."],
+  ["What are obligations?", "Side-effects the policy attaches to a grant: mask:account_no, redact, watermark, require_mfa, notify, ttl. They turn “yes/no” into “yes, but…” — e.g. a researcher may read a record with PII masked. PrivyQ returns them; your enforcement point applies them."],
+  ["Where does post-quantum crypto fit?", "It’s the floor. Data is protected with ML-KEM (Kyber-768) + AES-256-GCM and evidence is signed with ML-DSA (Dilithium-3) — NIST-standardized algorithms safe against a future quantum adversary. The default backend is Cloudflare CIRCL (pure Go); liboqs is an optional build. The product, though, is the security decision."],
+  ["Does PrivyQ authenticate users?", "No — it decides, it doesn’t authenticate for you. Identity providers resolve attributes (JWT/OIDC claims, API keys, wallet/DID proofs), and the trust in an attribute is only as good as its source. Wallet/DID proofs are verified cryptographically; other claims are as strong as their signer."],
   ["Is it really free?", "Yes. PrivyQ is MIT-licensed and open source. Install it, self-host it, and use it in production at no cost."],
 ];
 
@@ -480,10 +489,10 @@ function FinalCta() {
         <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-pink/20 blur-3xl" aria-hidden />
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 font-mono text-xs font-semibold text-white/70"><Zap className="h-3.5 w-3.5" /> Ready in under a minute</span>
-          <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Give your data rules it can’t forget.</h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/70">Protect a record, then try to open it as different people. Watch the right person get in, the wrong one turned away, and the receipts pile up — all live.</p>
+          <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Stop writing authorization code.</h2>
+          <p className="mx-auto mt-3 max-w-xl text-white/70">Pick an identity, ask the policy engine, and watch a real Decision come back — allowed or denied, with the reason, the matched and failed conditions, and its obligations. One brain, every service.</p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/demo" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-ink transition-transform hover:-translate-y-0.5">Launch the demo <ArrowRight className="h-5 w-5" /></Link>
+            <Link href="/explorer" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-ink transition-transform hover:-translate-y-0.5">Open the Decision Explorer <ArrowRight className="h-5 w-5" /></Link>
             <Link href="/docs" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3.5 font-bold text-white transition-colors hover:bg-white/10">Read the docs</Link>
           </div>
         </div>
@@ -494,7 +503,7 @@ function FinalCta() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [["Live demo", "/demo"], ["Documentation", "/docs"]] as [string, string][] },
+    { h: "Product", links: [["Decision Explorer", "/explorer"], ["Compliance", "/compliance"], ["Live demo", "/demo"], ["Documentation", "/docs"]] as [string, string][] },
     { h: "Resources", links: [["GitHub", GITHUB_URL], ["PyPI", PYPI_URL]] as [string, string][] },
   ];
   const ext = (href: string) => href.startsWith("http");
@@ -503,7 +512,7 @@ function Footer() {
       <div className="grid gap-8 sm:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <p className="font-display text-lg font-extrabold">PrivyQ</p>
-          <p className="mt-2 max-w-xs text-sm text-muted">Post-quantum encryption that carries its own access rules and hands you tamper-proof receipts. Lock it. Rule it. Prove it.</p>
+          <p className="mt-2 max-w-xs text-sm text-muted">The trust-infrastructure SDK: describe access policies instead of writing authorization code — explainable decisions, provable evidence, post-quantum by default.</p>
         </div>
         {cols.map((c) => (
           <div key={c.h}>
