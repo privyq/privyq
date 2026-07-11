@@ -437,6 +437,10 @@ func (s *Service) Check(protectedData []byte, policy types.Policy, identity type
 // Version reports the core version.
 func (s *Service) Version() string { return s.version }
 
+// ChainRoot returns the current evidence-chain root (the newest entry hash), used
+// by the opt-in anchoring job to notarise the log.
+func (s *Service) ChainRoot() (string, error) { return s.Evidence.LastHash() }
+
 // appendEvidence generates a signed, chained evidence entry and stores it. The
 // chain mutex guarantees the parent-hash read and append are atomic.
 func (s *Service) appendEvidence(p audit.GenerateParams) (types.Evidence, error) {

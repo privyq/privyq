@@ -14,6 +14,7 @@ import (
 
 	coregrpc "github.com/privyq/privyq/core-go/internal/grpc"
 
+	"github.com/privyq/privyq/core-go/internal/anchor"
 	"github.com/privyq/privyq/core-go/internal/audit"
 	"github.com/privyq/privyq/core-go/internal/core"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
@@ -98,6 +99,32 @@ func main() {
 			<-ticker.C
 		}
 	}()
+
+	// Opt-in audit anchoring (ARCH §12, blueprint §14): periodically notarise the
+	// evidence-chain root. Off by default; ANCHOR_BACKEND=file|<chain> enables it.
+	if backend := os.Getenv("ANCHOR_BACKEND"); backend != "" && backend != "none" {
+		anc, err := anchor.New(backend, os.Getenv("ANCHOR_PATH"))
+		if err != nil {
+			log.Fatalf("privyqd: anchor: %v", err)
+		}
+		log.Printf("privyqd: audit anchoring enabled (backend=%s)", anc.Name())
+		go func() {
+			ticker := time.NewTicker(time.Hour)
+			defer ticker.Stop()
+			var last string
+			for {
+				if root, err := svc.ChainRoot(); err == nil && root != last && root != "genesis" {
+					if ref, err := anc.Anchor(root); err != nil {
+						log.Printf("privyqd: anchor: %v", err)
+					} else {
+						last = root
+						log.Printf("privyqd: anchored chain root -> %s", ref)
+					}
+				}
+				<-ticker.C
+			}
+		}()
+	}
 
 	server := coregrpc.NewServer(svc)
 
