@@ -11,10 +11,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/privyq/privyq/core-go/internal/audit"
+	"github.com/privyq/privyq/core-go/internal/compliance"
 	"github.com/privyq/privyq/core-go/internal/encryption"
 	"github.com/privyq/privyq/core-go/internal/kem"
 	"github.com/privyq/privyq/core-go/internal/keymanager"
@@ -330,6 +332,19 @@ func (s *Service) ExportEvidence(f audit.Filter, format string) (content []byte,
 	all, _ := s.Evidence.All()
 	chainOK, _ := audit.VerifyChain(all, s.publicKeyLookup())
 	return audit.Export(entries, format, chainOK)
+}
+
+// ComplianceReport maps the (filtered) evidence onto a framework's controls
+// (GDPR | HIPAA | SOC2), including the whole-chain verification result.
+func (s *Service) ComplianceReport(f audit.Filter, framework string) (compliance.Report, error) {
+	entries, err := s.Evidence.List(f)
+	if err != nil {
+		return compliance.Report{}, err
+	}
+	all, _ := s.Evidence.All()
+	chainOK, _ := audit.VerifyChain(all, s.publicKeyLookup())
+	fw := compliance.Framework(strings.ToUpper(strings.TrimSpace(framework)))
+	return compliance.Generate(fw, entries, chainOK, time.Now().UTC().Format(time.RFC3339)), nil
 }
 
 // VerifyEvidence checks an entry's signature and (against the stored chain) its

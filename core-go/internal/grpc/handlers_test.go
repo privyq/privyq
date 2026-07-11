@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/privyq/privyq/core-go/pkg/pb"
@@ -152,6 +153,38 @@ func TestSealVerifyHandler(t *testing.T) {
 	}
 	if bad.Valid {
 		t.Fatal("tampered data must not verify against the seal")
+	}
+}
+
+func TestExportAndComplianceHandlers(t *testing.T) {
+	s := newTestServer()
+	ctx := context.Background()
+	pol := &pb.Policy{Combination: "all", Conditions: []*pb.Condition{{Type: "role", Operator: "equals", Values: []string{"doctor"}}}}
+	if _, err := s.Protect(ctx, &pb.ProtectRequest{Plaintext: []byte("x"), Policy: pol,
+		Actor: &pb.Identity{UserId: "dr", Role: "doctor", Purpose: "treatment"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Export as CSV.
+	exp, err := s.ExportEvidence(ctx, &pb.ExportEvidenceRequest{Format: "csv"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if exp.ContentType != "text/csv" || len(exp.Content) == 0 {
+		t.Fatalf("bad export: %+v", exp)
+	}
+
+	// Compliance report (GDPR).
+	rep, err := s.ComplianceReport(ctx, &pb.ComplianceReportRequest{Framework: "GDPR"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var report map[string]any
+	if err := json.Unmarshal(rep.ReportJson, &report); err != nil {
+		t.Fatal(err)
+	}
+	if report["framework"] != "GDPR" || report["total_events"].(float64) < 1 {
+		t.Fatalf("unexpected report: %v", report)
 	}
 }
 

@@ -5,6 +5,7 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/privyq/privyq/core-go/internal/audit"
 	"github.com/privyq/privyq/core-go/internal/core"
@@ -171,6 +172,21 @@ func (s *Server) ExportEvidence(_ context.Context, r *pb.ExportEvidenceRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.ExportEvidenceResponse{Content: content, ContentType: ct, Filename: fn}, nil
+}
+
+// ComplianceReport maps the evidence trail onto a framework's controls (JSON).
+func (s *Server) ComplianceReport(_ context.Context, r *pb.ComplianceReportRequest) (*pb.ComplianceReportResponse, error) {
+	report, err := s.svc.ComplianceReport(audit.Filter{
+		ResourceID: r.ResourceId, ActorID: r.ActorId, StartTime: r.StartTime, EndTime: r.EndTime,
+	}, r.Framework)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	b, err := json.Marshal(report)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &pb.ComplianceReportResponse{ReportJson: b}, nil
 }
 
 func (s *Server) ListKeys(_ context.Context, _ *pb.ListKeysRequest) (*pb.ListKeysResponse, error) {

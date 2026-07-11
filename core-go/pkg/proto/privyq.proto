@@ -277,6 +277,18 @@ message ExportEvidenceResponse {
   string filename = 3;
 }
 
+// ComplianceReport — map the evidence trail onto GDPR/HIPAA/SOC2 controls.
+message ComplianceReportRequest {
+  string resource_id = 1;
+  string actor_id = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string framework = 5;       // "GDPR" | "HIPAA" | "SOC2"
+}
+message ComplianceReportResponse {
+  bytes report_json = 1;      // JSON-encoded compliance.Report
+}
+
 message HealthRequest {}
 message HealthResponse { string status = 1; string version = 2; map<string, string> services = 3; }
 
@@ -313,6 +325,7 @@ service PrivyQCore {
   rpc VerifyEvidence (VerifyEvidenceRequest) returns (VerifyEvidenceResponse);
   rpc GetEvidenceLog (GetEvidenceLogRequest) returns (GetEvidenceLogResponse);
   rpc ExportEvidence (ExportEvidenceRequest) returns (ExportEvidenceResponse); // v2 compliance export
+  rpc ComplianceReport (ComplianceReportRequest) returns (ComplianceReportResponse); // v2 GDPR/HIPAA/SOC2
 
   // Ops
   rpc Health (HealthRequest) returns (HealthResponse);

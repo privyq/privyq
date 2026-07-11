@@ -44,6 +44,7 @@ const (
 	PrivyQCore_VerifyEvidence_FullMethodName   = "/privyq.v1.PrivyQCore/VerifyEvidence"
 	PrivyQCore_GetEvidenceLog_FullMethodName   = "/privyq.v1.PrivyQCore/GetEvidenceLog"
 	PrivyQCore_ExportEvidence_FullMethodName   = "/privyq.v1.PrivyQCore/ExportEvidence"
+	PrivyQCore_ComplianceReport_FullMethodName = "/privyq.v1.PrivyQCore/ComplianceReport"
 	PrivyQCore_Health_FullMethodName           = "/privyq.v1.PrivyQCore/Health"
 )
 
@@ -74,6 +75,7 @@ type PrivyQCoreClient interface {
 	VerifyEvidence(ctx context.Context, in *VerifyEvidenceRequest, opts ...grpc.CallOption) (*VerifyEvidenceResponse, error)
 	GetEvidenceLog(ctx context.Context, in *GetEvidenceLogRequest, opts ...grpc.CallOption) (*GetEvidenceLogResponse, error)
 	ExportEvidence(ctx context.Context, in *ExportEvidenceRequest, opts ...grpc.CallOption) (*ExportEvidenceResponse, error)
+	ComplianceReport(ctx context.Context, in *ComplianceReportRequest, opts ...grpc.CallOption) (*ComplianceReportResponse, error)
 	// Ops
 	Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -256,6 +258,16 @@ func (c *privyQCoreClient) ExportEvidence(ctx context.Context, in *ExportEvidenc
 	return out, nil
 }
 
+func (c *privyQCoreClient) ComplianceReport(ctx context.Context, in *ComplianceReportRequest, opts ...grpc.CallOption) (*ComplianceReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ComplianceReportResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_ComplianceReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *privyQCoreClient) Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthResponse)
@@ -293,6 +305,7 @@ type PrivyQCoreServer interface {
 	VerifyEvidence(context.Context, *VerifyEvidenceRequest) (*VerifyEvidenceResponse, error)
 	GetEvidenceLog(context.Context, *GetEvidenceLogRequest) (*GetEvidenceLogResponse, error)
 	ExportEvidence(context.Context, *ExportEvidenceRequest) (*ExportEvidenceResponse, error)
+	ComplianceReport(context.Context, *ComplianceReportRequest) (*ComplianceReportResponse, error)
 	// Ops
 	Health(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedPrivyQCoreServer()
@@ -355,6 +368,9 @@ func (UnimplementedPrivyQCoreServer) GetEvidenceLog(context.Context, *GetEvidenc
 }
 func (UnimplementedPrivyQCoreServer) ExportEvidence(context.Context, *ExportEvidenceRequest) (*ExportEvidenceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExportEvidence not implemented")
+}
+func (UnimplementedPrivyQCoreServer) ComplianceReport(context.Context, *ComplianceReportRequest) (*ComplianceReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ComplianceReport not implemented")
 }
 func (UnimplementedPrivyQCoreServer) Health(context.Context, *HealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
@@ -686,6 +702,24 @@ func _PrivyQCore_ExportEvidence_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivyQCore_ComplianceReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ComplianceReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).ComplianceReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_ComplianceReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).ComplianceReport(ctx, req.(*ComplianceReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PrivyQCore_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HealthRequest)
 	if err := dec(in); err != nil {
@@ -778,6 +812,10 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportEvidence",
 			Handler:    _PrivyQCore_ExportEvidence_Handler,
+		},
+		{
+			MethodName: "ComplianceReport",
+			Handler:    _PrivyQCore_ComplianceReport_Handler,
 		},
 		{
 			MethodName: "Health",
