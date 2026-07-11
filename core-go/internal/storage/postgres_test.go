@@ -149,6 +149,36 @@ func TestMetaTablesPopulated(t *testing.T) {
 	}
 }
 
+// tenants registry + default tenant (v2 multi-tenancy foundation).
+func TestTenantRegistry(t *testing.T) {
+	dsn := testDSN(t)
+	ctx := context.Background()
+	pg, err := New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pg.Close()
+	tn := pg.Tenants()
+
+	// The 'default' tenant is seeded by the schema.
+	def, err := tn.Get("default")
+	if err != nil || def.Name != "Default Tenant" {
+		t.Fatalf("default tenant missing: %v %+v", err, def)
+	}
+	// Create + read back.
+	if err := tn.Create("acme", "ACME Corp"); err != nil {
+		t.Fatal(err)
+	}
+	got, err := tn.Get("acme")
+	if err != nil || got.Name != "ACME Corp" || got.CreatedAt == "" {
+		t.Fatalf("tenant not persisted: %v %+v", err, got)
+	}
+	list, err := tn.List()
+	if err != nil || len(list) < 2 {
+		t.Fatalf("list should include default + acme: %v %+v", err, list)
+	}
+}
+
 func mustJSON(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)

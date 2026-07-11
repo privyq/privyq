@@ -115,6 +115,14 @@ type Decision struct {
 	EvaluatedConditions []ConditionResult `json:"evaluated_conditions"`
 }
 
+// Tenant is an isolated organisation in a multi-tenant deployment (v2 §19).
+type Tenant struct {
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	CreatedAt string            `json:"created_at"`
+	Settings  map[string]string `json:"settings,omitempty"`
+}
+
 // Sealed is a post-quantum digital signature over arbitrary data, produced by the
 // v2 `seal()` verb (v2 blueprint §5). It is self-describing so `verify()` needs no
 // extra arguments.

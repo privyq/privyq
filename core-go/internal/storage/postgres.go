@@ -49,6 +49,45 @@ func (p *Postgres) Keys() keymanager.KeyStorage { return &pgKeyStore{p.pool} }
 // Evidence returns the EvidenceStore view.
 func (p *Postgres) Evidence() audit.EvidenceStore { return &pgEvidenceStore{p.pool} }
 
+// Tenants returns the tenant registry (multi-tenancy foundation).
+func (p *Postgres) Tenants() *pgTenants { return &pgTenants{p.pool} }
+
+type pgTenants struct{ pool *pgxpool.Pool }
+
+func (t *pgTenants) Create(id, name string) error {
+	_, err := t.pool.Exec(context.Background(),
+		`INSERT INTO tenants (id, name) VALUES ($1,$2) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name`, id, name)
+	return err
+}
+
+func (t *pgTenants) Get(id string) (types.Tenant, error) {
+	var out types.Tenant
+	var created time.Time
+	err := t.pool.QueryRow(context.Background(),
+		`SELECT id, name, created_at FROM tenants WHERE id=$1`, id).Scan(&out.ID, &out.Name, &created)
+	out.CreatedAt = created.Format(time.RFC3339)
+	return out, err
+}
+
+func (t *pgTenants) List() ([]types.Tenant, error) {
+	rows, err := t.pool.Query(context.Background(), `SELECT id, name, created_at FROM tenants ORDER BY created_at`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []types.Tenant
+	for rows.Next() {
+		var tn types.Tenant
+		var created time.Time
+		if err := rows.Scan(&tn.ID, &tn.Name, &created); err != nil {
+			return nil, err
+		}
+		tn.CreatedAt = created.Format(time.RFC3339)
+		out = append(out, tn)
+	}
+	return out, rows.Err()
+}
+
 // Meta returns the auxiliary data-model store (users, policies, resources).
 func (p *Postgres) Meta() *pgMeta { return &pgMeta{p.pool} }
 

@@ -83,3 +83,24 @@ CREATE TABLE IF NOT EXISTS audit_events (
 CREATE INDEX IF NOT EXISTS idx_audit_events_resource ON audit_events (resource_id);
 CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events (actor_id);
 CREATE INDEX IF NOT EXISTS idx_audit_events_time ON audit_events (timestamp);
+
+-- tenants: multi-tenancy foundation (v2 blueprint §19). A single deployment can
+-- serve many organisations. Core tables carry a tenant_id (default 'default');
+-- gateway credentials bind a request to its tenant, and per-request scoping is
+-- enforced there.
+CREATE TABLE IF NOT EXISTS tenants (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    settings    JSONB NOT NULL DEFAULT '{}'
+);
+INSERT INTO tenants (id, name) VALUES ('default', 'Default Tenant') ON CONFLICT (id) DO NOTHING;
+
+-- Tenant scoping columns on the core tables (safe to run on existing DBs).
+ALTER TABLE users     ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'default';
+ALTER TABLE keys      ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'default';
+ALTER TABLE resources ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'default';
+ALTER TABLE audit_events ADD COLUMN IF NOT EXISTS tenant_id TEXT NOT NULL DEFAULT 'default';
+CREATE INDEX IF NOT EXISTS idx_users_tenant ON users (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_keys_tenant ON keys (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_resources_tenant ON resources (tenant_id);
