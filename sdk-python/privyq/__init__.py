@@ -15,6 +15,8 @@ from __future__ import annotations
 from . import evidence
 from .access import access
 from .config import Config, configure, get_config
+from .decision import Decision, check, explain
+from .seal import Sealed, seal
 from .exceptions import (
     ConditionFailedError,
     ConnectionError_,
@@ -39,8 +41,13 @@ __version__ = "1.0.0"
 __all__ = [
     "protect",
     "access",
+    "check",
+    "explain",
+    "seal",
     "verify",
     "evidence",
+    "Decision",
+    "Sealed",
     "configure",
     "get_config",
     "Config",

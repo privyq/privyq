@@ -51,30 +51,40 @@ def _shorthand_condition(key: str, value: Any) -> pb.Condition:
     return _condition(key, "equals", [value])
 
 
+# v2 structural keys — their presence means "structured form", never a condition.
+_STRUCTURAL = {"conditions", "custom_logic", "deny_conditions", "obligations", "policy_id"}
+
+
+def _conds_from(items: Any) -> list[pb.Condition]:
+    conds = []
+    for c in items or []:
+        values = c.get("values")
+        if values is None:
+            v = c.get("value")
+            values = v if isinstance(v, (list, tuple)) else [v]
+        conds.append(_condition(c["type"], c.get("operator", "equals"), list(values), c.get("negate", False)))
+    return conds
+
+
 def to_proto_policy(policy: Mapping[str, Any] | None) -> pb.Policy:
-    """Normalize a policy mapping into a :class:`pb.Policy`."""
+    """Normalize a policy mapping into a :class:`pb.Policy` (v1 shorthand or v2 structured)."""
     if policy is None:
         return pb.Policy(version="1.0", combination="all")
 
-    if "conditions" in policy:
-        conds = []
-        for c in policy["conditions"]:
-            values = c.get("values")
-            if values is None:
-                v = c.get("value")
-                values = v if isinstance(v, (list, tuple)) else [v]
-            conds.append(
-                _condition(c["type"], c.get("operator", "equals"), list(values), c.get("negate", False))
-            )
+    structured = bool(_STRUCTURAL & set(policy.keys())) or policy.get("combination") == "custom"
+    if structured:
         return pb.Policy(
-            version=str(policy.get("version", "1.0")),
-            conditions=conds,
+            version=str(policy.get("version", "2.0")),
+            conditions=_conds_from(policy.get("conditions")),
             combination=policy.get("combination", "all"),
             custom_logic=policy.get("custom_logic", ""),
+            deny_conditions=_conds_from(policy.get("deny_conditions")),
+            obligations=[str(o) for o in policy.get("obligations", [])],
+            policy_id=str(policy.get("policy_id", "")),
             metadata={str(k): str(v) for k, v in policy.get("metadata", {}).items()},
         )
 
-    # Shorthand form.
+    # Shorthand form: each key is a condition.
     reserved = {"combination", "version", "metadata"}
     conds = [_shorthand_condition(k, v) for k, v in policy.items() if k not in reserved]
     return pb.Policy(
@@ -88,8 +98,10 @@ def to_proto_identity(identity: Mapping[str, Any] | None) -> pb.Identity:
     """Turn an identity mapping into a :class:`pb.Identity`. Unknown keys are
     carried in the free-form ``attributes`` map."""
     identity = dict(identity or {})
+    nested = identity.pop("attributes", None) or {}
     known = {"user_id", "role", "department", "purpose", "organization", "classification", "jurisdiction"}
     attributes = {str(k): str(v) for k, v in identity.items() if k not in known}
+    attributes.update({str(k): str(v) for k, v in nested.items()})
     return pb.Identity(
         user_id=identity.get("user_id", ""),
         role=identity.get("role", ""),

@@ -31,3 +31,22 @@ def log(
     )
     resp = client.call("GetEvidenceLog", req)
     return [Receipt.from_pb(e) for e in resp.entries]
+
+
+def export(
+    fmt: str = "json",
+    *,
+    resource_id: str = "",
+    actor_id: str = "",
+    start_time: str = "",
+    end_time: str = "",
+    client: Client | None = None,
+) -> bytes:
+    """Export the evidence trail as ``json`` | ``csv`` | ``pdf`` for compliance."""
+    client = client or get_default_client()
+    req = pb.ExportEvidenceRequest(
+        resource_id=resource_id, actor_id=actor_id,
+        start_time=start_time, end_time=end_time, format=fmt,
+    )
+    resp = client.call("ExportEvidence", req)
+    return resp.content
