@@ -68,6 +68,11 @@ class PrivyQCoreStub:
                 request_serializer=privyq__pb2.EvaluatePolicyRequest.SerializeToString,
                 response_deserializer=privyq__pb2.EvaluatePolicyResponse.FromString,
                 _registered_method=True)
+        self.Check = channel.unary_unary(
+                '/privyq.v1.PrivyQCore/Check',
+                request_serializer=privyq__pb2.CheckRequest.SerializeToString,
+                response_deserializer=privyq__pb2.CheckResponse.FromString,
+                _registered_method=True)
         self.Protect = channel.unary_unary(
                 '/privyq.v1.PrivyQCore/Protect',
                 request_serializer=privyq__pb2.ProtectRequest.SerializeToString,
@@ -88,6 +93,16 @@ class PrivyQCoreStub:
                 request_serializer=privyq__pb2.VerifyRequest.SerializeToString,
                 response_deserializer=privyq__pb2.VerifyResponse.FromString,
                 _registered_method=True)
+        self.Seal = channel.unary_unary(
+                '/privyq.v1.PrivyQCore/Seal',
+                request_serializer=privyq__pb2.SealRequest.SerializeToString,
+                response_deserializer=privyq__pb2.SealResponse.FromString,
+                _registered_method=True)
+        self.VerifySeal = channel.unary_unary(
+                '/privyq.v1.PrivyQCore/VerifySeal',
+                request_serializer=privyq__pb2.VerifySealRequest.SerializeToString,
+                response_deserializer=privyq__pb2.VerifySealResponse.FromString,
+                _registered_method=True)
         self.GenerateEvidence = channel.unary_unary(
                 '/privyq.v1.PrivyQCore/GenerateEvidence',
                 request_serializer=privyq__pb2.GenerateEvidenceRequest.SerializeToString,
@@ -102,6 +117,11 @@ class PrivyQCoreStub:
                 '/privyq.v1.PrivyQCore/GetEvidenceLog',
                 request_serializer=privyq__pb2.GetEvidenceLogRequest.SerializeToString,
                 response_deserializer=privyq__pb2.GetEvidenceLogResponse.FromString,
+                _registered_method=True)
+        self.ExportEvidence = channel.unary_unary(
+                '/privyq.v1.PrivyQCore/ExportEvidence',
+                request_serializer=privyq__pb2.ExportEvidenceRequest.SerializeToString,
+                response_deserializer=privyq__pb2.ExportEvidenceResponse.FromString,
                 _registered_method=True)
         self.Health = channel.unary_unary(
                 '/privyq.v1.PrivyQCore/Health',
@@ -155,6 +175,13 @@ class PrivyQCoreServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Check(self, request, context):
+        """Authorization decision (PDP) — the v2 `check()` verb, no data revealed
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Protect(self, request, context):
         """Encryption / decryption
         """
@@ -170,12 +197,27 @@ class PrivyQCoreServicer:
 
     def Sign(self, request, context):
         """Signatures
+        low-level
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Verify(self, request, context):
+        """low-level
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Seal(self, request, context):
+        """v2 `seal()` — self-describing Sealed
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def VerifySeal(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -196,6 +238,13 @@ class PrivyQCoreServicer:
 
     def GetEvidenceLog(self, request, context):
         """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ExportEvidence(self, request, context):
+        """v2 compliance export
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -240,6 +289,11 @@ def add_PrivyQCoreServicer_to_server(servicer, server):
                     request_deserializer=privyq__pb2.EvaluatePolicyRequest.FromString,
                     response_serializer=privyq__pb2.EvaluatePolicyResponse.SerializeToString,
             ),
+            'Check': grpc.unary_unary_rpc_method_handler(
+                    servicer.Check,
+                    request_deserializer=privyq__pb2.CheckRequest.FromString,
+                    response_serializer=privyq__pb2.CheckResponse.SerializeToString,
+            ),
             'Protect': grpc.unary_unary_rpc_method_handler(
                     servicer.Protect,
                     request_deserializer=privyq__pb2.ProtectRequest.FromString,
@@ -260,6 +314,16 @@ def add_PrivyQCoreServicer_to_server(servicer, server):
                     request_deserializer=privyq__pb2.VerifyRequest.FromString,
                     response_serializer=privyq__pb2.VerifyResponse.SerializeToString,
             ),
+            'Seal': grpc.unary_unary_rpc_method_handler(
+                    servicer.Seal,
+                    request_deserializer=privyq__pb2.SealRequest.FromString,
+                    response_serializer=privyq__pb2.SealResponse.SerializeToString,
+            ),
+            'VerifySeal': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifySeal,
+                    request_deserializer=privyq__pb2.VerifySealRequest.FromString,
+                    response_serializer=privyq__pb2.VerifySealResponse.SerializeToString,
+            ),
             'GenerateEvidence': grpc.unary_unary_rpc_method_handler(
                     servicer.GenerateEvidence,
                     request_deserializer=privyq__pb2.GenerateEvidenceRequest.FromString,
@@ -274,6 +338,11 @@ def add_PrivyQCoreServicer_to_server(servicer, server):
                     servicer.GetEvidenceLog,
                     request_deserializer=privyq__pb2.GetEvidenceLogRequest.FromString,
                     response_serializer=privyq__pb2.GetEvidenceLogResponse.SerializeToString,
+            ),
+            'ExportEvidence': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExportEvidence,
+                    request_deserializer=privyq__pb2.ExportEvidenceRequest.FromString,
+                    response_serializer=privyq__pb2.ExportEvidenceResponse.SerializeToString,
             ),
             'Health': grpc.unary_unary_rpc_method_handler(
                     servicer.Health,
@@ -458,6 +527,33 @@ class PrivyQCore:
             _registered_method=True)
 
     @staticmethod
+    def Check(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/privyq.v1.PrivyQCore/Check',
+            privyq__pb2.CheckRequest.SerializeToString,
+            privyq__pb2.CheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def Protect(request,
             target,
             options=(),
@@ -566,6 +662,60 @@ class PrivyQCore:
             _registered_method=True)
 
     @staticmethod
+    def Seal(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/privyq.v1.PrivyQCore/Seal',
+            privyq__pb2.SealRequest.SerializeToString,
+            privyq__pb2.SealResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def VerifySeal(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/privyq.v1.PrivyQCore/VerifySeal',
+            privyq__pb2.VerifySealRequest.SerializeToString,
+            privyq__pb2.VerifySealResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def GenerateEvidence(request,
             target,
             options=(),
@@ -636,6 +786,33 @@ class PrivyQCore:
             '/privyq.v1.PrivyQCore/GetEvidenceLog',
             privyq__pb2.GetEvidenceLogRequest.SerializeToString,
             privyq__pb2.GetEvidenceLogResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExportEvidence(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/privyq.v1.PrivyQCore/ExportEvidence',
+            privyq__pb2.ExportEvidenceRequest.SerializeToString,
+            privyq__pb2.ExportEvidenceResponse.FromString,
             options,
             channel_credentials,
             insecure,

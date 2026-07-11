@@ -24,12 +24,18 @@ message Condition {
 }
 
 // A privacy policy embedded in protected data and evaluated before decryption.
+//
+// v2 adds allow/deny separation, obligations, and a stable policy_id while staying
+// backward-compatible with v1 protected data (`conditions` == the allow rule).
 message Policy {
-  string version = 1;           // schema version, e.g. "1.0"
-  repeated Condition conditions = 2;
+  string version = 1;           // schema version, e.g. "1.0" (v1) or "2.0" (v2)
+  repeated Condition conditions = 2;   // the ALLOW rule (v1 name kept for compatibility)
   string combination = 3;       // "all" | "any" | "custom"
-  string custom_logic = 4;      // optional expression when combination == "custom"
+  string custom_logic = 4;      // sandboxed boolean expression when combination == "custom"
   map<string, string> metadata = 5;
+  repeated Condition deny_conditions = 6; // DENY rule — any match denies (overrides allow)
+  repeated string obligations = 7;        // e.g. "mask:account_no", "log", "ttl:1h"
+  string policy_id = 8;                   // stable identifier for the policy
 }
 
 // The requester's identity and context, evaluated against a Policy.
@@ -64,6 +70,30 @@ message ConditionResult {
   string expected = 2;
   string actual = 3;
   bool result = 4;
+}
+
+// The v2 authorization decision returned by Check (and used internally by Access).
+// Richer than PolicyEvaluation: it names which conditions matched/failed, carries
+// obligations the enforcement point must honour, and always explains itself.
+message Decision {
+  bool allowed = 1;
+  string reason = 2;                         // human-readable explanation (explain())
+  repeated string matched = 3;               // condition names/types that passed
+  repeated string failed = 4;                // condition names/types that failed
+  repeated string obligations = 5;           // "mask:field", "log", "ttl:1h", ...
+  string policy_id = 6;
+  string evaluated_at = 7;                    // RFC3339
+  repeated ConditionResult evaluated_conditions = 8;
+}
+
+// A post-quantum digital signature over arbitrary data, produced by Seal.
+// Self-describing so Verify needs no extra arguments.
+message Sealed {
+  string data_hash = 1;   // SHA-256 of the data (hex)
+  string signature = 2;   // base64 signature
+  string algorithm = 3;   // dilithium_3 (default) | falcon_512 (liboqs) | sphincs_128s | ...
+  string key_id = 4;      // signing key id
+  string sealed_at = 5;   // RFC3339
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -211,6 +241,42 @@ message EvaluatePolicyRequest {
 }
 message EvaluatePolicyResponse { PolicyEvaluation evaluation = 1; }
 
+// Check — the pure authorization decision (no data revealed). The PDP call any
+// service can make. Provide either protected_data (policy is extracted from the
+// envelope) or an explicit policy.
+message CheckRequest {
+  bytes protected_data = 1;   // optional: use the policy embedded in this envelope
+  Policy policy = 2;          // optional: evaluate this policy directly
+  Identity identity = 3;
+  Context context = 4;
+  bool emit_evidence = 5;     // record a signed evidence entry for this decision
+}
+message CheckResponse {
+  Decision decision = 1;
+  Evidence evidence = 2;      // present iff emit_evidence was set
+}
+
+// Seal — post-quantum signature over arbitrary data (the friendly `seal()` verb).
+message SealRequest { bytes data = 1; string key_id = 2; string algorithm = 3; }
+message SealResponse { Sealed sealed = 1; }
+
+message VerifySealRequest { bytes data = 1; Sealed sealed = 2; }
+message VerifySealResponse { bool valid = 1; string detail = 2; }
+
+// ExportEvidence — compliance export of the audit trail in json | csv | pdf.
+message ExportEvidenceRequest {
+  string resource_id = 1;
+  string actor_id = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string format = 5;          // "json" | "csv" | "pdf"
+}
+message ExportEvidenceResponse {
+  bytes content = 1;
+  string content_type = 2;    // application/json | text/csv | application/pdf
+  string filename = 3;
+}
+
 message HealthRequest {}
 message HealthResponse { string status = 1; string version = 2; map<string, string> services = 3; }
 
@@ -229,18 +295,24 @@ service PrivyQCore {
   // Policy evaluation (no side effects — used by the playground)
   rpc EvaluatePolicy (EvaluatePolicyRequest) returns (EvaluatePolicyResponse);
 
+  // Authorization decision (PDP) — the v2 `check()` verb, no data revealed
+  rpc Check (CheckRequest) returns (CheckResponse);
+
   // Encryption / decryption
   rpc Protect (ProtectRequest) returns (ProtectResponse);
   rpc Access (AccessRequest) returns (AccessResponse);
 
   // Signatures
-  rpc Sign (SignRequest) returns (SignResponse);
-  rpc Verify (VerifyRequest) returns (VerifyResponse);
+  rpc Sign (SignRequest) returns (SignResponse);          // low-level
+  rpc Verify (VerifyRequest) returns (VerifyResponse);    // low-level
+  rpc Seal (SealRequest) returns (SealResponse);          // v2 `seal()` — self-describing Sealed
+  rpc VerifySeal (VerifySealRequest) returns (VerifySealResponse);
 
   // Audit
   rpc GenerateEvidence (GenerateEvidenceRequest) returns (GenerateEvidenceResponse);
   rpc VerifyEvidence (VerifyEvidenceRequest) returns (VerifyEvidenceResponse);
   rpc GetEvidenceLog (GetEvidenceLogRequest) returns (GetEvidenceLogResponse);
+  rpc ExportEvidence (ExportEvidenceRequest) returns (ExportEvidenceResponse); // v2 compliance export
 
   // Ops
   rpc Health (HealthRequest) returns (HealthResponse);

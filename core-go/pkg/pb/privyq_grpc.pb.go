@@ -33,13 +33,17 @@ const (
 	PrivyQCore_GetPublicKey_FullMethodName     = "/privyq.v1.PrivyQCore/GetPublicKey"
 	PrivyQCore_ListKeys_FullMethodName         = "/privyq.v1.PrivyQCore/ListKeys"
 	PrivyQCore_EvaluatePolicy_FullMethodName   = "/privyq.v1.PrivyQCore/EvaluatePolicy"
+	PrivyQCore_Check_FullMethodName            = "/privyq.v1.PrivyQCore/Check"
 	PrivyQCore_Protect_FullMethodName          = "/privyq.v1.PrivyQCore/Protect"
 	PrivyQCore_Access_FullMethodName           = "/privyq.v1.PrivyQCore/Access"
 	PrivyQCore_Sign_FullMethodName             = "/privyq.v1.PrivyQCore/Sign"
 	PrivyQCore_Verify_FullMethodName           = "/privyq.v1.PrivyQCore/Verify"
+	PrivyQCore_Seal_FullMethodName             = "/privyq.v1.PrivyQCore/Seal"
+	PrivyQCore_VerifySeal_FullMethodName       = "/privyq.v1.PrivyQCore/VerifySeal"
 	PrivyQCore_GenerateEvidence_FullMethodName = "/privyq.v1.PrivyQCore/GenerateEvidence"
 	PrivyQCore_VerifyEvidence_FullMethodName   = "/privyq.v1.PrivyQCore/VerifyEvidence"
 	PrivyQCore_GetEvidenceLog_FullMethodName   = "/privyq.v1.PrivyQCore/GetEvidenceLog"
+	PrivyQCore_ExportEvidence_FullMethodName   = "/privyq.v1.PrivyQCore/ExportEvidence"
 	PrivyQCore_Health_FullMethodName           = "/privyq.v1.PrivyQCore/Health"
 )
 
@@ -55,16 +59,21 @@ type PrivyQCoreClient interface {
 	ListKeys(ctx context.Context, in *ListKeysRequest, opts ...grpc.CallOption) (*ListKeysResponse, error)
 	// Policy evaluation (no side effects — used by the playground)
 	EvaluatePolicy(ctx context.Context, in *EvaluatePolicyRequest, opts ...grpc.CallOption) (*EvaluatePolicyResponse, error)
+	// Authorization decision (PDP) — the v2 `check()` verb, no data revealed
+	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
 	// Encryption / decryption
 	Protect(ctx context.Context, in *ProtectRequest, opts ...grpc.CallOption) (*ProtectResponse, error)
 	Access(ctx context.Context, in *AccessRequest, opts ...grpc.CallOption) (*AccessResponse, error)
 	// Signatures
 	Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error)
 	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	Seal(ctx context.Context, in *SealRequest, opts ...grpc.CallOption) (*SealResponse, error)
+	VerifySeal(ctx context.Context, in *VerifySealRequest, opts ...grpc.CallOption) (*VerifySealResponse, error)
 	// Audit
 	GenerateEvidence(ctx context.Context, in *GenerateEvidenceRequest, opts ...grpc.CallOption) (*GenerateEvidenceResponse, error)
 	VerifyEvidence(ctx context.Context, in *VerifyEvidenceRequest, opts ...grpc.CallOption) (*VerifyEvidenceResponse, error)
 	GetEvidenceLog(ctx context.Context, in *GetEvidenceLogRequest, opts ...grpc.CallOption) (*GetEvidenceLogResponse, error)
+	ExportEvidence(ctx context.Context, in *ExportEvidenceRequest, opts ...grpc.CallOption) (*ExportEvidenceResponse, error)
 	// Ops
 	Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
@@ -137,6 +146,16 @@ func (c *privyQCoreClient) EvaluatePolicy(ctx context.Context, in *EvaluatePolic
 	return out, nil
 }
 
+func (c *privyQCoreClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_Check_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *privyQCoreClient) Protect(ctx context.Context, in *ProtectRequest, opts ...grpc.CallOption) (*ProtectResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProtectResponse)
@@ -177,6 +196,26 @@ func (c *privyQCoreClient) Verify(ctx context.Context, in *VerifyRequest, opts .
 	return out, nil
 }
 
+func (c *privyQCoreClient) Seal(ctx context.Context, in *SealRequest, opts ...grpc.CallOption) (*SealResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SealResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_Seal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *privyQCoreClient) VerifySeal(ctx context.Context, in *VerifySealRequest, opts ...grpc.CallOption) (*VerifySealResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VerifySealResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_VerifySeal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *privyQCoreClient) GenerateEvidence(ctx context.Context, in *GenerateEvidenceRequest, opts ...grpc.CallOption) (*GenerateEvidenceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GenerateEvidenceResponse)
@@ -207,6 +246,16 @@ func (c *privyQCoreClient) GetEvidenceLog(ctx context.Context, in *GetEvidenceLo
 	return out, nil
 }
 
+func (c *privyQCoreClient) ExportEvidence(ctx context.Context, in *ExportEvidenceRequest, opts ...grpc.CallOption) (*ExportEvidenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExportEvidenceResponse)
+	err := c.cc.Invoke(ctx, PrivyQCore_ExportEvidence_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *privyQCoreClient) Health(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthResponse)
@@ -229,16 +278,21 @@ type PrivyQCoreServer interface {
 	ListKeys(context.Context, *ListKeysRequest) (*ListKeysResponse, error)
 	// Policy evaluation (no side effects — used by the playground)
 	EvaluatePolicy(context.Context, *EvaluatePolicyRequest) (*EvaluatePolicyResponse, error)
+	// Authorization decision (PDP) — the v2 `check()` verb, no data revealed
+	Check(context.Context, *CheckRequest) (*CheckResponse, error)
 	// Encryption / decryption
 	Protect(context.Context, *ProtectRequest) (*ProtectResponse, error)
 	Access(context.Context, *AccessRequest) (*AccessResponse, error)
 	// Signatures
 	Sign(context.Context, *SignRequest) (*SignResponse, error)
 	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	Seal(context.Context, *SealRequest) (*SealResponse, error)
+	VerifySeal(context.Context, *VerifySealRequest) (*VerifySealResponse, error)
 	// Audit
 	GenerateEvidence(context.Context, *GenerateEvidenceRequest) (*GenerateEvidenceResponse, error)
 	VerifyEvidence(context.Context, *VerifyEvidenceRequest) (*VerifyEvidenceResponse, error)
 	GetEvidenceLog(context.Context, *GetEvidenceLogRequest) (*GetEvidenceLogResponse, error)
+	ExportEvidence(context.Context, *ExportEvidenceRequest) (*ExportEvidenceResponse, error)
 	// Ops
 	Health(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedPrivyQCoreServer()
@@ -269,6 +323,9 @@ func (UnimplementedPrivyQCoreServer) ListKeys(context.Context, *ListKeysRequest)
 func (UnimplementedPrivyQCoreServer) EvaluatePolicy(context.Context, *EvaluatePolicyRequest) (*EvaluatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EvaluatePolicy not implemented")
 }
+func (UnimplementedPrivyQCoreServer) Check(context.Context, *CheckRequest) (*CheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
+}
 func (UnimplementedPrivyQCoreServer) Protect(context.Context, *ProtectRequest) (*ProtectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Protect not implemented")
 }
@@ -281,6 +338,12 @@ func (UnimplementedPrivyQCoreServer) Sign(context.Context, *SignRequest) (*SignR
 func (UnimplementedPrivyQCoreServer) Verify(context.Context, *VerifyRequest) (*VerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
 }
+func (UnimplementedPrivyQCoreServer) Seal(context.Context, *SealRequest) (*SealResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Seal not implemented")
+}
+func (UnimplementedPrivyQCoreServer) VerifySeal(context.Context, *VerifySealRequest) (*VerifySealResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifySeal not implemented")
+}
 func (UnimplementedPrivyQCoreServer) GenerateEvidence(context.Context, *GenerateEvidenceRequest) (*GenerateEvidenceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateEvidence not implemented")
 }
@@ -289,6 +352,9 @@ func (UnimplementedPrivyQCoreServer) VerifyEvidence(context.Context, *VerifyEvid
 }
 func (UnimplementedPrivyQCoreServer) GetEvidenceLog(context.Context, *GetEvidenceLogRequest) (*GetEvidenceLogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvidenceLog not implemented")
+}
+func (UnimplementedPrivyQCoreServer) ExportEvidence(context.Context, *ExportEvidenceRequest) (*ExportEvidenceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportEvidence not implemented")
 }
 func (UnimplementedPrivyQCoreServer) Health(context.Context, *HealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Health not implemented")
@@ -422,6 +488,24 @@ func _PrivyQCore_EvaluatePolicy_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivyQCore_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).Check(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_Check_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).Check(ctx, req.(*CheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PrivyQCore_Protect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProtectRequest)
 	if err := dec(in); err != nil {
@@ -494,6 +578,42 @@ func _PrivyQCore_Verify_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivyQCore_Seal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SealRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).Seal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_Seal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).Seal(ctx, req.(*SealRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PrivyQCore_VerifySeal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifySealRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).VerifySeal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_VerifySeal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).VerifySeal(ctx, req.(*VerifySealRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PrivyQCore_GenerateEvidence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GenerateEvidenceRequest)
 	if err := dec(in); err != nil {
@@ -548,6 +668,24 @@ func _PrivyQCore_GetEvidenceLog_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivyQCore_ExportEvidence_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportEvidenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivyQCoreServer).ExportEvidence(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivyQCore_ExportEvidence_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivyQCoreServer).ExportEvidence(ctx, req.(*ExportEvidenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PrivyQCore_Health_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HealthRequest)
 	if err := dec(in); err != nil {
@@ -598,6 +736,10 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PrivyQCore_EvaluatePolicy_Handler,
 		},
 		{
+			MethodName: "Check",
+			Handler:    _PrivyQCore_Check_Handler,
+		},
+		{
 			MethodName: "Protect",
 			Handler:    _PrivyQCore_Protect_Handler,
 		},
@@ -614,6 +756,14 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PrivyQCore_Verify_Handler,
 		},
 		{
+			MethodName: "Seal",
+			Handler:    _PrivyQCore_Seal_Handler,
+		},
+		{
+			MethodName: "VerifySeal",
+			Handler:    _PrivyQCore_VerifySeal_Handler,
+		},
+		{
 			MethodName: "GenerateEvidence",
 			Handler:    _PrivyQCore_GenerateEvidence_Handler,
 		},
@@ -624,6 +774,10 @@ var PrivyQCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEvidenceLog",
 			Handler:    _PrivyQCore_GetEvidenceLog_Handler,
+		},
+		{
+			MethodName: "ExportEvidence",
+			Handler:    _PrivyQCore_ExportEvidence_Handler,
 		},
 		{
 			MethodName: "Health",
